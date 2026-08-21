@@ -78,7 +78,6 @@ export default function FraudDetectorDashboard() {
               className="input-box" 
               value={ipMatch}
               onChange={(e) => setIpMatch(e.target.value)}
-              style={{ backgroundColor: 'var(--bg-lighter)' }}
             >
               <option value="1">Yes (Normal)</option>
               <option value="0">No (Mismatch)</option>
@@ -147,6 +146,19 @@ export default function FraudDetectorDashboard() {
             <p style={{ color: 'var(--text-light)', lineHeight: '1.6', fontSize: '0.95rem' }}>
               {result.reason}
             </p>
+
+            {result.xai_flags && result.xai_flags.length > 0 && (
+              <div style={{ marginTop: '1rem', backgroundColor: 'var(--panel-charcoal)', border: '1px solid var(--border-faint)', borderRadius: '8px', padding: '1rem' }}>
+                <div style={{ fontSize: '0.85rem', color: 'var(--electric-magenta)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem', fontWeight: 'bold' }}>XAI Audit Trail</div>
+                <ul style={{ listStyleType: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {result.xai_flags.map((flag, idx) => (
+                    <li key={idx} style={{ color: 'var(--text-main)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ color: '#f87171' }}>•</span> {flag}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
       </div>

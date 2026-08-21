@@ -72,19 +72,27 @@ def initialize_model():
     recall = recall_score(y_test, y_pred)
     cm = confusion_matrix(y_test, y_pred)
     
-    # Calculate False Positive Cost
-    # Assuming average Customer Lifetime Value lost due to a false block is ₹2000
+    # Calculate Financial Impact Metrics
     false_positives = int(cm[0][1])
-    total_cost = false_positives * 2000
+    true_positives = int(cm[1][1])
+    
+    # Cost assumptions for Buildathon metrics
+    # CLV lost per false positive = ₹2000
+    # Average fraud transaction value protected = ₹4500 (based on synthetic generation > 3000 rule)
+    total_false_positive_cost = false_positives * 2000
+    total_fraud_prevented_value = true_positives * 4500
+    net_margin_protected = total_fraud_prevented_value - total_false_positive_cost
     
     metrics_cache = {
         "precision": round(precision, 4),
         "recall": round(recall, 4),
         "false_positives": false_positives,
-        "true_positives": int(cm[1][1]),
+        "true_positives": true_positives,
         "false_negatives": int(cm[1][0]),
         "true_negatives": int(cm[0][0]),
-        "false_positive_cost_inr": total_cost,
+        "false_positive_cost_inr": total_false_positive_cost,
+        "total_fraud_prevented_inr": total_fraud_prevented_value,
+        "net_margin_protected_inr": net_margin_protected,
         "test_set_size": len(y_test)
     }
     return metrics_cache
@@ -105,9 +113,30 @@ def predict_transaction(txn_data: dict):
     
     fraud_prob = round(probabilities[1] * 100, 2)
     
+    # Explainable AI (XAI) feature contribution heuristic
+    xai_reasons = []
+    if txn_data.get('device_velocity', 0) > 2:
+        xai_reasons.append(f"High Device Velocity ({txn_data.get('device_velocity')} txns/hr)")
+    if txn_data.get('ip_country_match', 1) == 0:
+        xai_reasons.append("IP Country Mismatch")
+    if txn_data.get('amount', 0) > 3000:
+        xai_reasons.append(f"High Amount (₹{txn_data.get('amount')})")
+    if txn_data.get('time_since_last_txn', 100) < 5:
+        xai_reasons.append("Rapid Successive Transaction (<5 mins)")
+        
+    reason_str = ""
+    if prediction:
+        if xai_reasons:
+            reason_str = f"Blocked by AI ({fraud_prob}% fraud risk). Key Drivers: " + ", ".join(xai_reasons) + "."
+        else:
+            reason_str = f"Blocked by AI ({fraud_prob}% fraud risk) based on complex non-linear pattern match."
+    else:
+        reason_str = "Transaction matches normal baseline behavior. Allowed."
+    
     return {
         "is_fraud": bool(prediction),
         "fraud_probability": fraud_prob,
         "action": "BLOCK" if prediction else "ALLOW",
-        "reason": f"AI calculated a {fraud_prob}% probability of fraud based on device velocity and IP matching." if prediction else "Transaction matches normal baseline behavior."
+        "reason": reason_str,
+        "xai_flags": xai_reasons if prediction else []
     }

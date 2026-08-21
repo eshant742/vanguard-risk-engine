@@ -4,10 +4,12 @@ import MLMetricsDashboard from './components/MLMetricsDashboard'
 import ChargebackDashboard from './components/ChargebackDashboard'
 import AbuseRingDashboard from './components/AbuseRingDashboard'
 import ReturnRiskDashboard from './components/ReturnRiskDashboard'
+import { ShieldAlert, BarChart3, Receipt, Users, Undo2, ChevronLeft, ChevronRight, Activity } from 'lucide-react'
 import './index.css'
 
 function App() {
   const [activeTab, setActiveTab] = useState('fraud')
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
 
   const getTitle = () => {
     switch(activeTab) {
@@ -22,62 +24,78 @@ function App() {
 
   return (
     <div className="app-container">
-      {/* Floating Left Dock */}
-      <aside className="sidebar">
-        <div className="brand">
-          <span>VAN</span>GUARD
+      {/* Floating Left Dock (Slider) */}
+      <aside className={`sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
+        <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {isSidebarOpen && (
+            <div className="brand">
+              <span>VAN</span>GUARD
+            </div>
+          )}
+          <button className="slider-toggle-btn" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+            {isSidebarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+          </button>
         </div>
         
-        <div style={{ marginTop: '1.5rem', padding: '0 0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', fontFamily: "'JetBrains Mono', monospace" }}>
-          Modules
-        </div>
+        {isSidebarOpen && (
+          <div style={{ marginTop: '1.5rem', padding: '0 0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', fontFamily: "'JetBrains Mono', monospace" }}>
+            Modules
+          </div>
+        )}
         
-        <nav className="nav-links">
+        <nav className="nav-links" style={{ marginTop: isSidebarOpen ? '0' : '2rem' }}>
           <button 
             className={`nav-btn ${activeTab === 'fraud' ? 'active' : ''}`}
             onClick={() => setActiveTab('fraud')}
+            title="Live Fraud Detector"
           >
-            <div className={`status-indicator ${activeTab === 'fraud' ? 'status-cyan' : ''}`} style={{ backgroundColor: activeTab !== 'fraud' ? 'var(--border-faint)' : '' }}></div>
-            Live Fraud Detector
+            <ShieldAlert size={20} color={activeTab === 'fraud' ? 'var(--cyber-cyan)' : 'var(--text-muted)'} />
+            {isSidebarOpen && <span>Live Fraud Detector</span>}
           </button>
           
           <button 
             className={`nav-btn ${activeTab === 'metrics' ? 'active' : ''}`}
             onClick={() => setActiveTab('metrics')}
+            title="ML Metrics Evaluator"
           >
-            <div className={`status-indicator ${activeTab === 'metrics' ? 'status-cyan' : ''}`} style={{ backgroundColor: activeTab !== 'metrics' ? 'var(--border-faint)' : '' }}></div>
-            ML Metrics Evaluator
+            <BarChart3 size={20} color={activeTab === 'metrics' ? 'var(--cyber-cyan)' : 'var(--text-muted)'} />
+            {isSidebarOpen && <span>ML Metrics Evaluator</span>}
           </button>
 
           <button 
             className={`nav-btn ${activeTab === 'chargeback' ? 'active' : ''}`}
             onClick={() => setActiveTab('chargeback')}
+            title="Chargeback Responder"
           >
-            <div className={`status-indicator ${activeTab === 'chargeback' ? 'status-cyan' : ''}`} style={{ backgroundColor: activeTab !== 'chargeback' ? 'var(--border-faint)' : '' }}></div>
-            Chargeback Responder
+            <Receipt size={20} color={activeTab === 'chargeback' ? 'var(--cyber-cyan)' : 'var(--text-muted)'} />
+            {isSidebarOpen && <span>Chargeback Responder</span>}
           </button>
 
           <button 
             className={`nav-btn ${activeTab === 'abuse' ? 'active' : ''}`}
             onClick={() => setActiveTab('abuse')}
+            title="Abuse-Ring Sentinel"
           >
-            <div className={`status-indicator ${activeTab === 'abuse' ? 'status-cyan' : ''}`} style={{ backgroundColor: activeTab !== 'abuse' ? 'var(--border-faint)' : '' }}></div>
-            Abuse-Ring Sentinel
+            <Users size={20} color={activeTab === 'abuse' ? 'var(--cyber-cyan)' : 'var(--text-muted)'} />
+            {isSidebarOpen && <span>Abuse-Ring Sentinel</span>}
           </button>
 
           <button 
             className={`nav-btn ${activeTab === 'returnrisk' ? 'active' : ''}`}
             onClick={() => setActiveTab('returnrisk')}
+            title="Return-Risk Scorer"
           >
-            <div className={`status-indicator ${activeTab === 'returnrisk' ? 'status-cyan' : ''}`} style={{ backgroundColor: activeTab !== 'returnrisk' ? 'var(--border-faint)' : '' }}></div>
-            Return-Risk Scorer
+            <Undo2 size={20} color={activeTab === 'returnrisk' ? 'var(--cyber-cyan)' : 'var(--text-muted)'} />
+            {isSidebarOpen && <span>Return-Risk Scorer</span>}
           </button>
         </nav>
 
-        <div className="sidebar-footer">
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-main)', fontWeight: '600', fontFamily: "'JetBrains Mono', monospace" }}>Razorpay Buildathon</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>Track 02: Risk Manager</div>
-        </div>
+        {isSidebarOpen && (
+          <div className="sidebar-footer">
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-main)', fontWeight: '600', fontFamily: "'JetBrains Mono', monospace" }}>Razorpay Buildathon</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>Track 02: Risk Manager</div>
+          </div>
+        )}
       </aside>
 
       {/* Main Content Canvas */}
@@ -100,7 +118,7 @@ function App() {
         {/* Live Threat Ticker (Wow Factor) */}
         <div className="threat-ticker-wrapper">
           <div className="ticker-label">
-            <div className="status-indicator status-magenta"></div>
+            <Activity size={16} color="var(--electric-magenta)" />
             LIVE STREAM
           </div>
           <div className="ticker-content">

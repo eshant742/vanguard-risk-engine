@@ -53,10 +53,10 @@ export default function MLMetricsDashboard() {
         </p>
       </div>
 
-      <div className="dashboard-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+      <div className="dashboard-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
         
         <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Precision</div>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Precision</div>
           <div style={{ fontSize: '3rem', fontWeight: '800', color: '#60a5fa', margin: '0.5rem 0' }}>
             {(metrics?.precision * 100).toFixed(1)}%
           </div>
@@ -76,12 +76,22 @@ export default function MLMetricsDashboard() {
         </div>
 
         <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>False-Positive Cost</div>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>False-Positive Cost</div>
           <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#f87171', margin: '0.5rem 0' }}>
-            ₹{metrics?.false_positive_cost_inr.toLocaleString()}
+            ₹{metrics?.false_positive_cost_inr?.toLocaleString() || 0}
           </div>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center' }}>
             Total CLV lost by falsely blocking {metrics?.false_positives} legitimate customers.
+          </div>
+        </div>
+
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--cyber-cyan)', backgroundColor: 'var(--cyber-cyan-glow)' }}>
+          <div style={{ fontSize: '0.85rem', color: 'var(--cyber-cyan)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 'bold' }}>Net Margin Protected</div>
+          <div style={{ fontSize: '2.5rem', fontWeight: '800', color: 'var(--cyber-cyan)', margin: '0.5rem 0' }}>
+            ₹{metrics?.net_margin_protected_inr?.toLocaleString() || 0}
+          </div>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-main)', textAlign: 'center' }}>
+            Total Fraud Prevented (₹{metrics?.total_fraud_prevented_inr?.toLocaleString() || 0}) minus False Positive Costs.
           </div>
         </div>
 
@@ -90,27 +100,27 @@ export default function MLMetricsDashboard() {
       <div className="card">
         <h3 className="card-title">Confusion Matrix (Test Set)</h3>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr 1fr', gap: '1rem', marginTop: '2rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(80px, auto) 1fr 1fr', gap: '1rem', marginTop: '2rem' }}>
           <div></div>
-          <div style={{ textAlign: 'center', fontWeight: '600', color: 'var(--text-light)' }}>Predicted SAFE</div>
-          <div style={{ textAlign: 'center', fontWeight: '600', color: 'var(--text-light)' }}>Predicted FRAUD</div>
+          <div style={{ textAlign: 'center', fontWeight: '600', color: 'var(--text-light)', fontSize: '0.9rem' }}>Predicted SAFE</div>
+          <div style={{ textAlign: 'center', fontWeight: '600', color: 'var(--text-light)', fontSize: '0.9rem' }}>Predicted FRAUD</div>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', fontWeight: '600', color: 'var(--text-light)' }}>Actual SAFE</div>
-          <div style={{ backgroundColor: 'rgba(74, 222, 128, 0.1)', border: '1px solid #4ade80', padding: '2rem', textAlign: 'center', borderRadius: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', fontWeight: '600', color: 'var(--text-light)', fontSize: '0.9rem', textAlign: 'right' }}>Actual<br/>SAFE</div>
+          <div style={{ backgroundColor: 'rgba(74, 222, 128, 0.1)', border: '1px solid #4ade80', padding: '1.5rem', textAlign: 'center', borderRadius: '8px' }}>
             <div style={{ fontSize: '2rem', fontWeight: '800', color: '#4ade80' }}>{metrics?.true_negatives}</div>
             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>True Negatives</div>
           </div>
-          <div style={{ backgroundColor: 'rgba(248, 113, 113, 0.1)', border: '1px solid #f87171', padding: '2rem', textAlign: 'center', borderRadius: '8px' }}>
+          <div style={{ backgroundColor: 'rgba(248, 113, 113, 0.1)', border: '1px solid #f87171', padding: '1.5rem', textAlign: 'center', borderRadius: '8px' }}>
             <div style={{ fontSize: '2rem', fontWeight: '800', color: '#f87171' }}>{metrics?.false_positives}</div>
             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>False Positives</div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', fontWeight: '600', color: 'var(--text-light)' }}>Actual FRAUD</div>
-          <div style={{ backgroundColor: 'rgba(248, 113, 113, 0.1)', border: '1px solid #f87171', padding: '2rem', textAlign: 'center', borderRadius: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', fontWeight: '600', color: 'var(--text-light)', fontSize: '0.9rem', textAlign: 'right' }}>Actual<br/>FRAUD</div>
+          <div style={{ backgroundColor: 'rgba(248, 113, 113, 0.1)', border: '1px solid #f87171', padding: '1.5rem', textAlign: 'center', borderRadius: '8px' }}>
             <div style={{ fontSize: '2rem', fontWeight: '800', color: '#f87171' }}>{metrics?.false_negatives}</div>
             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>False Negatives</div>
           </div>
-          <div style={{ backgroundColor: 'rgba(74, 222, 128, 0.1)', border: '1px solid #4ade80', padding: '2rem', textAlign: 'center', borderRadius: '8px' }}>
+          <div style={{ backgroundColor: 'rgba(74, 222, 128, 0.1)', border: '1px solid #4ade80', padding: '1.5rem', textAlign: 'center', borderRadius: '8px' }}>
             <div style={{ fontSize: '2rem', fontWeight: '800', color: '#4ade80' }}>{metrics?.true_positives}</div>
             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>True Positives</div>
           </div>
