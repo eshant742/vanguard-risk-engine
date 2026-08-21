@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Copy, Check } from 'lucide-react'
+import { API_BASE } from '../App'
 
 export default function ChargebackDashboard() {
   const [txnId, setTxnId] = useState('pay_Q8V9xwM3nKdL')
@@ -6,15 +8,17 @@ export default function ChargebackDashboard() {
   const [loading, setLoading] = useState(false)
   const [evidence, setEvidence] = useState(null)
   const [error, setError] = useState(null)
+  const [copied, setCopied] = useState(false)
 
   const handleGenerate = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
     setEvidence(null)
+    setCopied(false)
     
     try {
-      const response = await fetch('http://localhost:8000/api/fraud/chargeback', {
+      const response = await fetch(`${API_BASE}/api/fraud/chargeback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -23,7 +27,10 @@ export default function ChargebackDashboard() {
         })
       })
       
-      if (!response.ok) throw new Error('API failed')
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}))
+        throw new Error(errData.detail || `API returned ${response.status}`)
+      }
       const data = await response.json()
       setEvidence(data.evidence_letter)
     } catch (err) {
@@ -33,8 +40,26 @@ export default function ChargebackDashboard() {
     }
   }
 
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(evidence)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea')
+      textarea.value = evidence
+      document.body.appendChild(textarea)
+      textarea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textarea)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
+
   return (
-    <div className="dashboard-grid" style={{ gridTemplateColumns: '350px 1fr' }}>
+    <div className="dashboard-grid">
       
       <div className="card" style={{ height: 'fit-content' }}>
         <h3 className="card-title">Chargeback Input</h3>
@@ -77,7 +102,14 @@ export default function ChargebackDashboard() {
       </div>
 
       <div className="card" style={{ minHeight: '600px', backgroundColor: '#1a1d24' }}>
-        <h3 className="card-title">Generated Visa/Mastercard Defense Letter</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3 className="card-title" style={{ marginBottom: 0 }}>Generated Visa/Mastercard Defense Letter</h3>
+          {evidence && (
+            <button className={`copy-btn ${copied ? 'copied' : ''}`} onClick={handleCopy}>
+              {copied ? <><Check size={14} /> Copied!</> : <><Copy size={14} /> Copy</>}
+            </button>
+          )}
+        </div>
         
         {loading && (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
@@ -99,16 +131,16 @@ export default function ChargebackDashboard() {
 
         {evidence && (
           <div style={{ 
-            marginTop: '1rem', 
+            marginTop: '1.5rem', 
             padding: '1.5rem', 
             backgroundColor: '#0f1115', 
             borderRadius: '8px',
             border: '1px solid var(--border-color)',
-            fontFamily: 'monospace',
+            fontFamily: "'JetBrains Mono', monospace",
             whiteSpace: 'pre-wrap',
             color: '#e2e8f0',
-            fontSize: '0.9rem',
-            lineHeight: '1.5',
+            fontSize: '0.85rem',
+            lineHeight: '1.6',
             overflowY: 'auto',
             maxHeight: '500px'
           }}>

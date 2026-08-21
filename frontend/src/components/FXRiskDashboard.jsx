@@ -1,67 +1,119 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'
+import { API_BASE } from '../App'
 
 export default function FXRiskDashboard() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState('');
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [lastUpdated, setLastUpdated] = useState('')
 
   const fetchData = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/fx-risk');
-      const result = await response.json();
-      setData(result);
-      setLastUpdated(new Date().toLocaleTimeString());
-    } catch (error) {
-      console.error("Failed to fetch FX data", error);
+      const response = await fetch(`${API_BASE}/api/fx-risk`)
+      if (!response.ok) throw new Error(`API returned ${response.status}`)
+      const result = await response.json()
+      setData(result)
+      setError(null)
+      setLastUpdated(new Date().toLocaleTimeString())
+    } catch (err) {
+      setError(err.message)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
-
-  useEffect(() => {
-    fetchData();
-    // Auto refresh every 30 seconds to simulate real-time dashboard
-    const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  if (loading && !data) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}><div className="loader" style={{ width: '40px', height: '40px' }}></div></div>;
   }
 
-  if (!data) return <div>Failed to load FX Risk Engine</div>;
+  useEffect(() => {
+    fetchData()
+    // Auto refresh every 30 seconds to simulate real-time dashboard
+    const interval = setInterval(fetchData, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  if (loading && !data) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+        <div className="loader" style={{ width: '40px', height: '40px', borderWidth: '4px' }}></div>
+      </div>
+    )
+  }
+
+  if (error && !data) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center', color: '#f87171' }}>
+        {error}. Make sure the Python backend is running!
+      </div>
+    )
+  }
+
+  if (!data) return null
+
+  const getStatusColorVar = (color) => {
+    switch(color) {
+      case 'green': return 'var(--cyber-cyan)'
+      case 'yellow': return 'var(--neon-amber)'
+      case 'red': return 'var(--electric-magenta)'
+      default: return 'var(--text-muted)'
+    }
+  }
+
+  const getStatusBgVar = (color) => {
+    switch(color) {
+      case 'green': return 'var(--cyber-cyan-glow)'
+      case 'yellow': return 'var(--neon-amber-glow)'
+      case 'red': return 'var(--electric-magenta-glow)'
+      default: return 'transparent'
+    }
+  }
 
   return (
     <div>
+      {/* Status header — no duplicate <h2> since topbar already has title */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
         <div>
-          <h2>Macroeconomic FX & Liquidity Risk</h2>
           <p className="subtitle">Real-time global currency monitoring and sentiment-based risk prediction.</p>
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>System Risk Level</div>
-          <span className={`badge badge-${data.status_color}`} style={{ fontSize: '1.1rem', padding: '0.6rem 1.2rem' }}>
-            <span className={`pulse-indicator bg-${data.status_color}`} style={{ marginRight: '0.5rem' }}></span>
+          <span className="badge" style={{ 
+            fontSize: '1rem', 
+            padding: '0.5rem 1rem',
+            background: getStatusBgVar(data.status_color),
+            color: getStatusColorVar(data.status_color),
+            border: `1px solid ${getStatusColorVar(data.status_color)}`
+          }}>
+            <span className="pulse-indicator" style={{ backgroundColor: getStatusColorVar(data.status_color) }}>
+              <span style={{ display: 'none' }}></span>
+            </span>
             {data.system_status}
           </span>
           <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.5rem' }}>Last updated: {lastUpdated}</div>
         </div>
       </div>
 
-      <div className="fx-ticker">
+      {/* FX Rate Ticker */}
+      <div className="animate-fade-in stagger-1" style={{ background: 'var(--panel-charcoal)', padding: '1rem 1.5rem', borderRadius: '12px', border: '1px solid var(--border-faint)', display: 'flex', gap: '2.5rem', overflowX: 'auto', marginBottom: '2rem' }}>
         {Object.entries(data.rates).map(([currency, rate]) => (
-          <div key={currency} className="fx-item">
-            <span className="fx-pair">{data.base_currency} / {currency}</span>
-            <span className="fx-rate">{rate.toFixed(2)}</span>
+          <div key={currency} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: "'JetBrains Mono', monospace" }}>{data.base_currency} / {currency}</span>
+            <span style={{ fontSize: '1.3rem', fontWeight: 'bold', color: 'var(--cyber-cyan)', fontFamily: "'JetBrains Mono', monospace" }}>{rate.toFixed(2)}</span>
           </div>
         ))}
       </div>
 
-      <div className="dashboard-grid">
-        <div className="glass-card">
-          <div className="result-header" style={{ marginBottom: '1rem', paddingBottom: '1rem' }}>
-            <h3 style={{ margin: 0, color: '#fff' }}>Settlement Risk Score</h3>
-            <div className={`score-value ${data.status_color}`}>{data.macro_risk_score}</div>
+      <div className="dashboard-grid animate-fade-in stagger-2">
+        {/* Settlement Risk Score Card */}
+        <div className="card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', paddingBottom: '1rem' }}>
+            <h3 style={{ margin: 0, color: '#fff', textTransform: 'uppercase', letterSpacing: '1.5px', fontSize: '0.95rem' }}>Settlement Risk Score</h3>
+            <div style={{ 
+              fontSize: '3.5rem', 
+              fontWeight: '800', 
+              lineHeight: 1,
+              color: getStatusColorVar(data.status_color),
+              textShadow: `0 0 20px ${getStatusBgVar(data.status_color)}`
+            }}>
+              {data.macro_risk_score}
+            </div>
           </div>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
             Score is calculated by blending real-time FX volatility with live NLP sentiment analysis of global financial news. 
@@ -69,7 +121,7 @@ export default function FXRiskDashboard() {
           </p>
           
           <div style={{ marginTop: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.85rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
               <span>0 (Stable)</span>
               <span>100 (Critical)</span>
             </div>
@@ -78,23 +130,42 @@ export default function FXRiskDashboard() {
                 style={{ 
                   width: `${data.macro_risk_score}%`, 
                   height: '100%', 
-                  background: `var(--accent-${data.status_color})`,
-                  transition: 'width 1s ease-in-out'
+                  background: getStatusColorVar(data.status_color),
+                  transition: 'width 1s ease-in-out',
+                  boxShadow: `0 0 10px ${getStatusBgVar(data.status_color)}`
                 }}
               ></div>
             </div>
           </div>
+
+          {/* Average sentiment */}
+          {data.average_sentiment !== undefined && (
+            <div style={{ marginTop: '1.5rem', padding: '1rem', backgroundColor: 'var(--panel-charcoal)', borderRadius: '8px', border: '1px solid var(--border-faint)' }}>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Avg News Sentiment</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: '700', color: getStatusColorVar(data.average_sentiment > 0.1 ? 'green' : data.average_sentiment < -0.1 ? 'red' : 'yellow'), fontFamily: "'JetBrains Mono', monospace" }}>
+                {data.average_sentiment > 0 ? '+' : ''}{data.average_sentiment.toFixed(2)}
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="glass-card">
-          <h3 style={{ color: '#fff', marginBottom: '1.5rem' }}>Live AI News Sentiment (RSS)</h3>
-          <div className="news-feed">
+        {/* News Sentiment Card */}
+        <div className="card">
+          <h3 className="card-title">Live AI News Sentiment (RSS)</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '400px', overflowY: 'auto', paddingRight: '0.5rem' }}>
             {data.news.map((item, index) => (
-              <div key={index} className={`news-item border-${item.color}`}>
+              <div key={index} className="animate-fade-in" style={{ 
+                animationDelay: `${index * 0.1}s`, 
+                padding: '1rem', 
+                borderLeft: `3px solid ${getStatusColorVar(item.color)}`,
+                background: 'var(--panel-charcoal)', 
+                borderRadius: '0 8px 8px 0' 
+              }}>
                 <div>
-                  <div className="news-title">{item.headline}</div>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                    VADER Sentiment Score: <span className={`text-${item.color}`}>{item.sentiment.toFixed(2)}</span>
+                  <div style={{ fontSize: '0.95rem', fontWeight: '500', marginBottom: '0.5rem', color: 'var(--text-main)' }}>{item.headline}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between' }}>
+                    <span>VADER Sentiment Score</span>
+                    <span style={{ color: getStatusColorVar(item.color), fontWeight: 'bold', fontFamily: "'JetBrains Mono', monospace" }}>{item.sentiment.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -103,5 +174,5 @@ export default function FXRiskDashboard() {
         </div>
       </div>
     </div>
-  );
+  )
 }

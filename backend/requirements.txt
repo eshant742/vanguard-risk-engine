@@ -1,9 +1,20 @@
+# Vanguard Risk Engine — Backend Dependencies
+# Core API Framework
 fastapi==0.109.2
 uvicorn==0.27.1
+pydantic==2.6.1
+
+# ML Engine
+scikit-learn==1.4.0
 pandas==2.2.0
 numpy==1.26.4
-scikit-learn==1.4.0
-pydantic==2.6.1
+
+# Web Scraping (Merchant Underwriting)
 requests==2.31.0
 beautifulsoup4==4.12.3
+
+# NLP Sentiment Analysis
 vaderSentiment==3.3.2
+
+# RSS Feed Parsing (FX Risk Engine)
+feedparser==6.0.14

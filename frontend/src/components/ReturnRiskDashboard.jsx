@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { API_BASE } from '../App'
 
 export default function ReturnRiskDashboard() {
   const [itemsKept, setItemsKept] = useState(2)
@@ -16,7 +17,7 @@ export default function ReturnRiskDashboard() {
     setResult(null)
     
     try {
-      const response = await fetch('http://localhost:8000/api/fraud/return-risk', {
+      const response = await fetch(`${API_BASE}/api/fraud/return-risk`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -29,7 +30,10 @@ export default function ReturnRiskDashboard() {
         }),
       });
       
-      if (!response.ok) throw new Error('API failed')
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}))
+        throw new Error(errData.detail || `API returned ${response.status}`)
+      }
       const data = await response.json()
       setResult(data)
     } catch (err) {
@@ -41,9 +45,9 @@ export default function ReturnRiskDashboard() {
 
   const getRiskColor = (level) => {
     switch(level) {
-      case 'CRITICAL': return '#f87171' // Red
-      case 'MEDIUM': return '#d69e2e' // Yellow
-      case 'LOW': return '#4ade80' // Green
+      case 'CRITICAL': return '#f87171'
+      case 'MEDIUM': return '#d69e2e'
+      case 'LOW': return '#4ade80'
       default: return '#fff'
     }
   }
@@ -58,7 +62,7 @@ export default function ReturnRiskDashboard() {
   }
 
   return (
-    <div className="dashboard-grid" style={{ gridTemplateColumns: '350px 1fr' }}>
+    <div className="dashboard-grid">
       <div className="card" style={{ height: 'fit-content' }}>
         <h3 className="card-title">Wardrobing Fraud Simulator</h3>
         <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
@@ -74,6 +78,7 @@ export default function ReturnRiskDashboard() {
               className="input-box" 
               value={itemsKept}
               onChange={(e) => setItemsKept(e.target.value)}
+              min="0"
               required
             />
           </div>
@@ -85,6 +90,7 @@ export default function ReturnRiskDashboard() {
               className="input-box" 
               value={itemsReturned}
               onChange={(e) => setItemsReturned(e.target.value)}
+              min="0"
               required
             />
           </div>
@@ -96,6 +102,8 @@ export default function ReturnRiskDashboard() {
               className="input-box" 
               value={cartValue}
               onChange={(e) => setCartValue(e.target.value)}
+              min="0"
+              step="any"
               required
             />
           </div>
@@ -140,8 +148,24 @@ export default function ReturnRiskDashboard() {
                 {result.return_probability}%
               </div>
             </div>
+
+            {/* Visual risk gauge */}
+            <div className="risk-gauge-wrapper">
+              <div className="risk-gauge-bar">
+                <div 
+                  className="risk-gauge-marker" 
+                  style={{ left: `${Math.min(result.return_probability, 100)}%` }}
+                ></div>
+              </div>
+              <div className="risk-gauge-labels">
+                <span>0% Low</span>
+                <span>40% Medium</span>
+                <span>75% Critical</span>
+                <span>100%</span>
+              </div>
+            </div>
             
-            <div style={{ height: '1px', backgroundColor: 'var(--border-color)', margin: '1rem 0' }}></div>
+            <div style={{ height: '1px', backgroundColor: 'var(--border-color)', margin: '0.5rem 0' }}></div>
             
             <div style={{ 
               display: 'inline-flex', 
@@ -162,6 +186,27 @@ export default function ReturnRiskDashboard() {
             <p style={{ color: 'var(--text-light)', lineHeight: '1.6', fontSize: '0.95rem' }}>
               {result.recommendation}
             </p>
+
+            {/* Risk Breakdown */}
+            {result.breakdown && (
+              <div style={{ backgroundColor: 'var(--panel-charcoal)', border: '1px solid var(--border-faint)', borderRadius: '8px', padding: '1rem' }}>
+                <div style={{ fontSize: '0.85rem', color: 'var(--cyber-cyan)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.75rem', fontWeight: 'bold' }}>Risk Breakdown</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.9rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-light)' }}>
+                    <span>Historical Return Rate</span>
+                    <span style={{ color: getRiskColor(result.risk_level), fontWeight: '600' }}>{result.breakdown.return_rate}%</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-light)' }}>
+                    <span>History Risk Factor</span>
+                    <span style={{ fontWeight: '600', fontFamily: "'JetBrains Mono', monospace" }}>{result.breakdown.history_factor}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-light)' }}>
+                    <span>Cart Value Risk Factor</span>
+                    <span style={{ fontWeight: '600', fontFamily: "'JetBrains Mono', monospace" }}>+{result.breakdown.cart_risk_factor}</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

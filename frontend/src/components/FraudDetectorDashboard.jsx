@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { API_BASE } from '../App'
 
 export default function FraudDetectorDashboard() {
   const [amount, setAmount] = useState(5000)
@@ -17,7 +18,7 @@ export default function FraudDetectorDashboard() {
     setResult(null)
     
     try {
-      const response = await fetch('http://localhost:8000/api/fraud/predict', {
+      const response = await fetch(`${API_BASE}/api/fraud/predict`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -30,7 +31,10 @@ export default function FraudDetectorDashboard() {
         }),
       });
       
-      if (!response.ok) throw new Error('API failed')
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}))
+        throw new Error(errData.detail || `API returned ${response.status}`)
+      }
       const data = await response.json()
       setResult(data)
     } catch (err) {
@@ -41,7 +45,7 @@ export default function FraudDetectorDashboard() {
   }
 
   return (
-    <div className="dashboard-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+    <div className="dashboard-grid">
       <div className="card">
         <h3 className="card-title">Simulate Live Transaction</h3>
         <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
@@ -57,6 +61,8 @@ export default function FraudDetectorDashboard() {
               className="input-box" 
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
+              min="0"
+              step="any"
               required
             />
           </div>
@@ -68,6 +74,7 @@ export default function FraudDetectorDashboard() {
               className="input-box" 
               value={velocity}
               onChange={(e) => setVelocity(e.target.value)}
+              min="0"
               required
             />
           </div>
@@ -91,6 +98,8 @@ export default function FraudDetectorDashboard() {
               className="input-box" 
               value={timeSince}
               onChange={(e) => setTimeSince(e.target.value)}
+              min="0"
+              step="any"
               required
             />
           </div>
@@ -135,8 +144,23 @@ export default function FraudDetectorDashboard() {
                 {result.fraud_probability}%
               </div>
             </div>
+
+            {/* Visual risk gauge */}
+            <div className="risk-gauge-wrapper">
+              <div className="risk-gauge-bar">
+                <div 
+                  className="risk-gauge-marker" 
+                  style={{ left: `${Math.min(result.fraud_probability, 100)}%` }}
+                ></div>
+              </div>
+              <div className="risk-gauge-labels">
+                <span>0% Safe</span>
+                <span>50%</span>
+                <span>100% Fraud</span>
+              </div>
+            </div>
             
-            <div style={{ height: '1px', backgroundColor: 'var(--border-color)', margin: '1rem 0' }}></div>
+            <div style={{ height: '1px', backgroundColor: 'var(--border-color)', margin: '0.5rem 0' }}></div>
             
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '100px', backgroundColor: result.is_fraud ? 'rgba(248, 113, 113, 0.1)' : 'rgba(74, 222, 128, 0.1)', color: result.is_fraud ? '#f87171' : '#4ade80', width: 'fit-content', fontWeight: '600', border: `1px solid ${result.is_fraud ? '#f87171' : '#4ade80'}` }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: result.is_fraud ? '#f87171' : '#4ade80' }}></div>
@@ -148,7 +172,7 @@ export default function FraudDetectorDashboard() {
             </p>
 
             {result.xai_flags && result.xai_flags.length > 0 && (
-              <div style={{ marginTop: '1rem', backgroundColor: 'var(--panel-charcoal)', border: '1px solid var(--border-faint)', borderRadius: '8px', padding: '1rem' }}>
+              <div style={{ marginTop: '0.5rem', backgroundColor: 'var(--panel-charcoal)', border: '1px solid var(--border-faint)', borderRadius: '8px', padding: '1rem' }}>
                 <div style={{ fontSize: '0.85rem', color: 'var(--electric-magenta)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem', fontWeight: 'bold' }}>XAI Audit Trail</div>
                 <ul style={{ listStyleType: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {result.xai_flags.map((flag, idx) => (
