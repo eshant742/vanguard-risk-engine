@@ -124,10 +124,11 @@ def analyze_merchant(url: str):
     
     # Deductions
     if found_prohibited:
-        # Scale by number of prohibited keywords found
-        trust_score -= min(80, len(found_prohibited) * 25)
+        # Prohibited items are severe violations. Any single violation drops score below REJECT threshold.
+        trust_score -= 75 + (len(found_prohibited) * 10)
     if found_high_risk:
-        trust_score -= min(30, len(found_high_risk) * 15)
+        # High risk items are a warning
+        trust_score -= min(40, len(found_high_risk) * 20)
         
     # If the site is extremely negative
     if sentiment_scores['compound'] < -0.5:
