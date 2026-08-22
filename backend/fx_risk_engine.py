@@ -2,16 +2,25 @@ import logging
 import requests
 import feedparser
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 logger = logging.getLogger("vanguard.fx")
 analyzer = SentimentIntensityAnalyzer()
+
+# Configure robust requests session
+session = requests.Session()
+retry = Retry(connect=3, backoff_factor=0.5)
+adapter = HTTPAdapter(max_retries=retry)
+session.mount('http://', adapter)
+session.mount('https://', adapter)
 
 def get_live_fx_rates():
     """Fetches real live exchange rates from Frankfurter API"""
     try:
         # Base USD, get INR, EUR, GBP
         url = "https://api.frankfurter.app/latest?from=USD&to=INR,EUR,GBP"
-        resp = requests.get(url, timeout=5)
+        resp = session.get(url, timeout=5)
         resp.raise_for_status()
         data = resp.json()
         rates = data.get("rates", {})
@@ -33,7 +42,7 @@ def get_news_sentiment():
     for rss_url in rss_urls:
         try:
             # feedparser has no built-in timeout, so we fetch with requests first
-            resp = requests.get(rss_url, timeout=5, headers={
+            resp = session.get(rss_url, timeout=5, headers={
                 'User-Agent': 'Mozilla/5.0 (compatible; VanguardRiskEngine/1.0)'
             })
             feed = feedparser.parse(resp.content)

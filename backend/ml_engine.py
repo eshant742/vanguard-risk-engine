@@ -11,7 +11,7 @@ from sklearn.metrics import (
 FEATURE_COLUMNS = ['amount', 'device_velocity', 'ip_country_match', 'time_since_last_txn']
 
 # 1. Generate Synthetic Merchant Transactions
-def generate_synthetic_data(n_samples=2000):
+def generate_synthetic_data(n_samples=5000):
     np.random.seed(42)
     
     # Features:

@@ -45,28 +45,12 @@ def _context_is_whitelisted(keyword: str, text: str) -> bool:
 def _keyword_in_text(keyword: str, text: str) -> bool:
     """
     Check if a keyword exists in text using word-boundary-aware matching.
-    Handles both multi-word phrases and single words.
-    For URL components (containing dots), use simple substring matching.
+    Handles both multi-word phrases and single words, including URL segments.
     """
-    # For URL-style patterns (e.g., "binance" in "binance.com"), use substring
-    # Split text into URL portions and regular text portions
-    # Simple approach: use regex word boundaries but also check for dot-separated tokens
-    
-    # First check with word boundaries (handles most cases correctly)
-    pattern = r'(?:^|[\s\-_/\.])' + re.escape(keyword) + r'(?:$|[\s\-_/\.,;:!?\)])'
-    if re.search(pattern, text, re.IGNORECASE):
-        return True
-    
-    # Also check if keyword appears as part of URL/domain
-    if '.' in text:
-        # Check URL-like segments
-        url_segments = re.findall(r'[\w\-]+(?:\.[\w\-]+)+', text)
-        for segment in url_segments:
-            parts = segment.lower().split('.')
-            if keyword.lower() in parts:
-                return True
-    
-    return False
+    # \b matches word boundaries, perfectly handling spaces, dots, slashes, etc.
+    # This prevents 'gun' from matching 'burgundy' but allows it to match 'example.com/gun'
+    pattern = r'\b' + re.escape(keyword) + r'\b'
+    return bool(re.search(pattern, text, re.IGNORECASE))
 
 
 def analyze_merchant(url: str):
