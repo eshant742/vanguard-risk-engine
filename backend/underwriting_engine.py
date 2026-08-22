@@ -1,8 +1,10 @@
+import logging
 import requests
 import re
 from bs4 import BeautifulSoup
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
+logger = logging.getLogger("vanguard.underwriting")
 analyzer = SentimentIntensityAnalyzer()
 
 # High-risk keywords for a payment gateway (simulating prohibited businesses)
@@ -20,13 +22,24 @@ HIGH_RISK_KEYWORDS = [
     "drop shipping", "dropshipping", "penny stock"
 ]
 
-# Legitimate words that contain prohibited substrings — exclude these
+# Legitimate words that contain prohibited substrings — exclude these from flagging
 FALSE_POSITIVE_WHITELIST = {
     "drugstore", "adult education", "adult learning", "adulting",
     "gundam", "burgundy", "gun control", "shotgun wedding",
     "stakehold", "stakeholder", "sweepstakes",
-    "escort service"  # Keep this flagged
 }
+
+
+def _context_is_whitelisted(keyword: str, text: str) -> bool:
+    """
+    Check if a keyword match is actually part of a whitelisted phrase.
+    Returns True if the match should be suppressed (false positive).
+    """
+    text_lower = text.lower()
+    for whitelisted_phrase in FALSE_POSITIVE_WHITELIST:
+        if keyword in whitelisted_phrase and whitelisted_phrase in text_lower:
+            return True
+    return False
 
 
 def _keyword_in_text(keyword: str, text: str) -> bool:
@@ -108,16 +121,18 @@ def analyze_merchant(url: str):
     else:
         sentiment_scores = {'compound': 0.0}
     
-    # Keyword Risk Analysis (word-boundary-aware matching)
+    # Keyword Risk Analysis (word-boundary-aware matching with whitelist filtering)
     found_prohibited = []
     for kw in PROHIBITED_KEYWORDS:
         if _keyword_in_text(kw, text) and kw not in found_prohibited:
-            found_prohibited.append(kw)
+            if not _context_is_whitelisted(kw, text):
+                found_prohibited.append(kw)
 
     found_high_risk = []
     for kw in HIGH_RISK_KEYWORDS:
         if _keyword_in_text(kw, text) and kw not in found_high_risk:
-            found_high_risk.append(kw)
+            if not _context_is_whitelisted(kw, text):
+                found_high_risk.append(kw)
     
     # Calculate Trust Score (0-100) with weighted deductions
     trust_score = 100

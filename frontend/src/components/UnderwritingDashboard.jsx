@@ -19,6 +19,12 @@ export default function UnderwritingDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url })
       })
+      
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}))
+        throw new Error(errData.detail || `API returned ${response.status}`)
+      }
+      
       const data = await response.json()
       setResult(data)
     } catch (error) {
@@ -61,13 +67,14 @@ export default function UnderwritingDashboard() {
         <form onSubmit={analyzeUrl} style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <input 
             type="text" 
-            className="input-field" 
+            id="underwrite-url-input"
+            className="input-box" 
             placeholder="Enter merchant website URL (e.g., https://example.com)" 
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             required
           />
-          <button type="submit" className="btn-primary" disabled={loading}>
+          <button type="submit" id="underwrite-submit-btn" className="primary-btn" disabled={loading}>
             {loading ? <div className="loader"></div> : 'Run AI Analysis'}
           </button>
         </form>

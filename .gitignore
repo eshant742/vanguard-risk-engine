@@ -18,3 +18,9 @@ frontend/.DS_Store
 # Logs and OS files
 *.log
 Thumbs.db
+
+# Python build artifacts
+*.egg-info/
+dist/
+build/
+.pytest_cache/

@@ -16,6 +16,48 @@ Vanguard is a unified, autonomous Risk Management platform that acts as a compre
 3. **"Strictly defense-only."**
    - Every module is purely defensive (blocking transactions, drafting defense evidence, identifying existing abuse rings, managing macro-liquidity).
 
+## 🏛️ System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        VANGUARD RISK ENGINE                             │
+├─────────────────────┬───────────────────────────────────────────────────┤
+│                     │                                                   │
+│   React Dashboard   │              FastAPI Backend                      │
+│   (Vite + CSS)      │              (Python 3.x)                         │
+│                     │                                                   │
+│  ┌───────────────┐  │  ┌──────────────────────────────────────────────┐ │
+│  │ Fraud Detector│◄─┼──┤ ML Engine (scikit-learn Random Forest)      │ │
+│  │ Dashboard     │  │  │  ├─ 2000 synthetic transactions             │ │
+│  ├───────────────┤  │  │  ├─ 80/20 train/test split                  │ │
+│  │ ML Metrics    │◄─┼──┤  └─ XAI audit trail per prediction         │ │
+│  │ Dashboard     │  │  ├──────────────────────────────────────────────┤ │
+│  ├───────────────┤  │  │ Chargeback Responder (NLP Heuristic)        │ │
+│  │ Chargeback    │◄─┼──┤  ├─ Claim classification engine             │ │
+│  │ Dashboard     │  │  │  └─ Evidence letter generator               │ │
+│  ├───────────────┤  │  ├──────────────────────────────────────────────┤ │
+│  │ Abuse-Ring    │◄─┼──┤ Abuse-Ring Sentinel                         │ │
+│  │ Dashboard     │  │  │  └─ IP/Device/Address graph clustering      │ │
+│  ├───────────────┤  │  ├──────────────────────────────────────────────┤ │
+│  │ Return-Risk   │◄─┼──┤ Return-Risk Scorer                          │ │
+│  │ Dashboard     │  │  │  └─ Wardrobing fraud probability model      │ │
+│  ├───────────────┤  │  ├──────────────────────────────────────────────┤ │
+│  │ Underwriting  │◄─┼──┤ Underwriting Engine (NLP + Scraping)        │ │
+│  │ Dashboard     │  │  │  ├─ BeautifulSoup4 web scraper              │ │
+│  │               │  │  │  ├─ VADER sentiment analysis                │ │
+│  │               │  │  │  └─ Word-boundary keyword detection         │ │
+│  ├───────────────┤  │  ├──────────────────────────────────────────────┤ │
+│  │ FX Risk       │◄─┼──┤ FX & Liquidity Risk Engine                  │ │
+│  │ Dashboard     │  │  │  ├─ Frankfurter API (live FX rates)         │ │
+│  │               │  │  │  ├─ RSS news feed ingestion                 │ │
+│  │               │  │  │  └─ Sentiment-weighted risk scoring         │ │
+│  └───────────────┘  │  └──────────────────────────────────────────────┘ │
+│                     │                                                   │
+│  Live Threat Ticker │  Activity Feed Generator                          │
+│  (Real-time events) │  (Simulated threat stream)                        │
+└─────────────────────┴───────────────────────────────────────────────────┘
+```
+
 ## 🧩 The 6 Defense Modules
 
 1. **Live Fraud-Spike Detector (ML)**
@@ -35,6 +77,21 @@ Vanguard is a unified, autonomous Risk Management platform that acts as a compre
 
 6. **Macroeconomic FX & Liquidity Risk**
    - Ingests live global exchange rates (via Frankfurter API) and applies NLP sentiment analysis to live financial RSS feeds to predict global market volatility and settlement risk in real-time.
+
+## 📡 API Reference
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/` | Project info and available routes |
+| `GET` | `/api/health` | Health check for operational verification |
+| `POST` | `/api/fraud/predict` | Run ML fraud prediction on a transaction |
+| `GET` | `/api/fraud/metrics` | Get model evaluation metrics (held-out test set) |
+| `POST` | `/api/fraud/chargeback` | Generate chargeback defense evidence letter |
+| `GET` | `/api/fraud/abuse-ring` | Get detected abuse-ring clusters |
+| `POST` | `/api/fraud/return-risk` | Score return risk for a customer profile |
+| `POST` | `/api/underwrite` | Run AI compliance analysis on a merchant URL |
+| `GET` | `/api/fx-risk` | Get live FX rates + macro risk assessment |
+| `GET` | `/api/fraud/activity-feed` | Get live activity events for threat ticker |
 
 ## 🛠️ Tech Stack & Architecture
 
@@ -68,6 +125,20 @@ npm run dev
 *The frontend will now be running on `http://localhost:5173`*
 
 ## 🧪 Testing Guide
+
+### Automated Tests (Backend)
+```bash
+cd backend
+python -m pytest test_all.py -v
+```
+
+This runs the comprehensive test suite covering:
+- ML model training, prediction, and metrics validation
+- Underwriting keyword detection (including false-positive whitelist)
+- FX risk engine data structure and bounds validation
+- Edge cases (zero values, extreme amounts, missing schemes)
+
+### Manual Testing (Full Stack)
 
 1. Open `http://localhost:5173` in your browser.
 2. Watch the **Live Stream Ticker** at the top right to see simulated real-time events generated by the backend.

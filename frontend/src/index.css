@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+/* Fonts loaded via index.html <link> tags for performance */
 
 :root {
   /* Cyber-Minimalist Palette */
@@ -46,6 +46,7 @@ body {
   color: var(--text-main);
   line-height: 1.6;
   overflow-x: hidden;
+  scroll-behavior: smooth;
   /* Ambient Depth */
   background-image: 
     radial-gradient(circle at 10% 20%, rgba(0, 229, 255, 0.03), transparent 20%),
@@ -366,6 +367,17 @@ h3, .card-title {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+}
+
+/* Focus-visible for keyboard accessibility */
+.nav-btn:focus-visible,
+.btn-primary:focus-visible,
+.primary-btn:focus-visible,
+.input-field:focus-visible,
+.input-box:focus-visible,
+.copy-btn:focus-visible {
+  outline: 2px solid var(--cyber-cyan);
+  outline-offset: 2px;
 }
 
 /* --------------------------
@@ -799,5 +811,19 @@ h3, .card-title {
   
   .threat-ticker-wrapper {
     display: none;
+  }
+
+  .sidebar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-faint) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .sidebar::-webkit-scrollbar-thumb {
+    background: var(--border-faint);
+    border-radius: 2px;
   }
 }

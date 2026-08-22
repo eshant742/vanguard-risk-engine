@@ -12,6 +12,26 @@ import './index.css'
 // Single source of truth for API URL
 export const API_BASE = 'http://localhost:8000'
 
+/**
+ * Safe text highlighting — replaces dangerouslySetInnerHTML.
+ * Splits text on known patterns and wraps matches in styled spans.
+ */
+function HighlightedText({ text }) {
+  const pattern = /(₹[\d,]+|pay_\w+|CUST-\d+|RNG-\d+|[\d]+\.[\d]+\.[\d]+\.[\d]+)/g
+  const parts = text.split(pattern)
+  
+  // When using split with a capturing group, matched segments appear at odd indices
+  return (
+    <>
+      {parts.map((part, i) => 
+        i % 2 === 1
+          ? <span key={i} className="highlight">{part}</span>
+          : <span key={i}>{part}</span>
+      )}
+    </>
+  )
+}
+
 function App() {
   const [activeTab, setActiveTab] = useState('fraud')
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
@@ -90,6 +110,7 @@ function App() {
         
         <nav className="nav-links" style={{ marginTop: isSidebarOpen ? '0' : '2rem' }}>
           <button 
+            id="nav-fraud-detector"
             className={`nav-btn ${activeTab === 'fraud' ? 'active' : ''}`}
             onClick={() => handleTabChange('fraud')}
             title="Live Fraud Detector"
@@ -99,6 +120,7 @@ function App() {
           </button>
           
           <button 
+            id="nav-ml-metrics"
             className={`nav-btn ${activeTab === 'metrics' ? 'active' : ''}`}
             onClick={() => handleTabChange('metrics')}
             title="ML Metrics Evaluator"
@@ -108,6 +130,7 @@ function App() {
           </button>
 
           <button 
+            id="nav-chargeback"
             className={`nav-btn ${activeTab === 'chargeback' ? 'active' : ''}`}
             onClick={() => handleTabChange('chargeback')}
             title="Chargeback Responder"
@@ -117,6 +140,7 @@ function App() {
           </button>
 
           <button 
+            id="nav-abuse-ring"
             className={`nav-btn ${activeTab === 'abuse' ? 'active' : ''}`}
             onClick={() => handleTabChange('abuse')}
             title="Abuse-Ring Sentinel"
@@ -126,6 +150,7 @@ function App() {
           </button>
 
           <button 
+            id="nav-return-risk"
             className={`nav-btn ${activeTab === 'returnrisk' ? 'active' : ''}`}
             onClick={() => handleTabChange('returnrisk')}
             title="Return-Risk Scorer"
@@ -135,6 +160,7 @@ function App() {
           </button>
 
           <button 
+            id="nav-underwriting"
             className={`nav-btn ${activeTab === 'underwrite' ? 'active' : ''}`}
             onClick={() => handleTabChange('underwrite')}
             title="AI Underwriting"
@@ -144,6 +170,7 @@ function App() {
           </button>
           
           <button 
+            id="nav-fx-risk"
             className={`nav-btn ${activeTab === 'fx' ? 'active' : ''}`}
             onClick={() => handleTabChange('fx')}
             title="FX Risk Engine"
@@ -186,12 +213,9 @@ function App() {
           </div>
           <div className="ticker-content">
             {allTickerItems.map((item, idx) => (
-              <div key={idx} className="ticker-item" dangerouslySetInnerHTML={{
-                __html: item.replace(
-                  /(₹[\d,]+|pay_\w+|CUST-\d+|RNG-\d+|[\d]+\.[\d]+\.[\d]+\.[\d]+)/g,
-                  '<span class="highlight">$1</span>'
-                )
-              }} />
+              <div key={idx} className="ticker-item">
+                <HighlightedText text={item} />
+              </div>
             ))}
           </div>
         </div>

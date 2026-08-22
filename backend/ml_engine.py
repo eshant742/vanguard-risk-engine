@@ -89,10 +89,12 @@ def initialize_model():
     cm = confusion_matrix(y_test, y_pred)
     
     # Calculate Financial Impact Metrics
-    false_positives = int(cm[0][1]) if cm.shape[0] > 1 else 0
-    true_positives = int(cm[1][1]) if cm.shape[0] > 1 else 0
-    false_negatives = int(cm[1][0]) if cm.shape[0] > 1 else 0
-    true_negatives = int(cm[0][0])
+    # Safe access: confusion matrix can be 1x1 if model predicts only one class
+    is_full_matrix = cm.shape[0] > 1 and cm.shape[1] > 1
+    false_positives = int(cm[0][1]) if is_full_matrix else 0
+    true_positives = int(cm[1][1]) if is_full_matrix else 0
+    false_negatives = int(cm[1][0]) if is_full_matrix else 0
+    true_negatives = int(cm[0][0]) if cm.shape[0] > 0 and cm.shape[1] > 0 else 0
     
     # Cost assumptions for Buildathon metrics
     # CLV lost per false positive = ₹2000

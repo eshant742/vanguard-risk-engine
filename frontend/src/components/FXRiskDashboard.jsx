@@ -95,7 +95,7 @@ export default function FXRiskDashboard() {
         {Object.entries(data.rates).map(([currency, rate]) => (
           <div key={currency} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: "'JetBrains Mono', monospace" }}>{data.base_currency} / {currency}</span>
-            <span style={{ fontSize: '1.3rem', fontWeight: 'bold', color: 'var(--cyber-cyan)', fontFamily: "'JetBrains Mono', monospace" }}>{rate.toFixed(2)}</span>
+            <span style={{ fontSize: '1.3rem', fontWeight: 'bold', color: 'var(--cyber-cyan)', fontFamily: "'JetBrains Mono', monospace" }}>{(Number(rate) || 0).toFixed(2)}</span>
           </div>
         ))}
       </div>

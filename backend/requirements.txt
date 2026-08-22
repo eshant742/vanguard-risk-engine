@@ -18,3 +18,7 @@ vaderSentiment==3.3.2
 
 # RSS Feed Parsing (FX Risk Engine)
 feedparser==6.0.14
+
+# Testing
+pytest==8.0.0
+httpx2>=2.12.0

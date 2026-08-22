@@ -1,6 +1,7 @@
 import hashlib
 import random
 import logging
+from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
@@ -34,6 +35,47 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+
+@app.get("/", tags=["System"])
+def root():
+    """Root endpoint — project info and available API routes."""
+    return {
+        "project": "Vanguard Risk Engine",
+        "version": "1.0.0",
+        "track": "Razorpay AI Buildathon — Track 02: AI Risk Manager",
+        "modules": [
+            "Fraud-Spike Detector (ML)",
+            "Chargeback Evidence Auto-Responder (NLP)",
+            "Abuse-Ring Sentinel",
+            "Return-Risk Scorer",
+            "AI Merchant Underwriting (Compliance)",
+            "Macroeconomic FX & Liquidity Risk"
+        ],
+        "endpoints": {
+            "fraud_predict": "POST /api/fraud/predict",
+            "fraud_metrics": "GET /api/fraud/metrics",
+            "chargeback": "POST /api/fraud/chargeback",
+            "abuse_ring": "GET /api/fraud/abuse-ring",
+            "return_risk": "POST /api/fraud/return-risk",
+            "underwrite": "POST /api/underwrite",
+            "fx_risk": "GET /api/fx-risk",
+            "activity_feed": "GET /api/fraud/activity-feed",
+            "health": "GET /api/health"
+        }
+    }
+
+
+@app.get("/api/health", tags=["System"])
+def health_check():
+    """Health check endpoint for operational verification."""
+    from ml_engine import clf as _clf
+    return {
+        "status": "healthy",
+        "engine": "Vanguard Risk Engine",
+        "ml_model_loaded": _clf is not None,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
 
 # Allow frontend to connect
 app.add_middleware(
@@ -167,7 +209,7 @@ Razorpay AI Buildathon — Track 02: AI Risk Manager"""
 def get_abuse_rings():
     # Simulate scanning the last 24 hours of transactions for clusters
     return {
-        "scan_timestamp": "2026-08-21T14:00:00Z",
+        "scan_timestamp": datetime.now(timezone.utc).isoformat(),
         "total_transactions_scanned": 14829,
         "active_rings": [
             {
@@ -368,16 +410,17 @@ def get_activity_feed():
     ]
     
     events = []
-    base_hour = 14
-    base_min = rng.randint(0, 30)
+    now = datetime.now()
+    base_hour = now.hour
+    base_min = max(0, now.minute - rng.randint(5, 20))
     
     for i in range(8):
         category = rng.choice(event_templates)
         template = rng.choice(category["templates"])
         
-        minute = base_min + i * rng.randint(1, 4)
+        minute = min(59, base_min + i * rng.randint(1, 3))
         second = rng.randint(0, 59)
-        timestamp = f"{base_hour}:{minute:02d}:{second:02d}"
+        timestamp = f"{base_hour:02d}:{minute:02d}:{second:02d}"
         
         message = template.format(
             ip=f"{rng.randint(100,200)}.{rng.randint(1,255)}.{rng.randint(1,99)}.{rng.randint(1,255)}",
