@@ -140,11 +140,22 @@ export default function FXRiskDashboard() {
 
           {/* Average sentiment */}
           {data.average_sentiment !== undefined && (
-            <div style={{ marginTop: '1.5rem', padding: '1rem', backgroundColor: 'var(--panel-charcoal)', borderRadius: '8px', border: '1px solid var(--border-faint)' }}>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Avg News Sentiment</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: '700', color: getStatusColorVar(data.average_sentiment > 0.1 ? 'green' : data.average_sentiment < -0.1 ? 'red' : 'yellow'), fontFamily: "'JetBrains Mono', monospace" }}>
-                {data.average_sentiment > 0 ? '+' : ''}{data.average_sentiment.toFixed(2)}
+            <div style={{ marginTop: '1.5rem', padding: '1rem', backgroundColor: 'var(--panel-charcoal)', borderRadius: '8px', border: '1px solid var(--border-faint)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Avg News Sentiment</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: '700', color: getStatusColorVar(data.average_sentiment > 0.1 ? 'green' : data.average_sentiment < -0.1 ? 'red' : 'yellow'), fontFamily: "'JetBrains Mono', monospace" }}>
+                  {data.average_sentiment > 0 ? '+' : ''}{data.average_sentiment.toFixed(2)}
+                </div>
               </div>
+              
+              {data.volatility_metrics && (
+                <div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>7-Day Volatility (INR)</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--cyber-cyan)', fontFamily: "'JetBrains Mono', monospace" }}>
+                    {data.volatility_metrics.inr_volatility.toFixed(4)}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

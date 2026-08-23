@@ -7,6 +7,7 @@ export default function ChargebackDashboard() {
   const [claim, setClaim] = useState('I never received this item. Tracking is fake.')
   const [loading, setLoading] = useState(false)
   const [evidence, setEvidence] = useState(null)
+  const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
   const [copied, setCopied] = useState(false)
 
@@ -33,6 +34,7 @@ export default function ChargebackDashboard() {
       }
       const data = await response.json()
       setEvidence(data.evidence_letter)
+      setResult(data)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -145,6 +147,17 @@ export default function ChargebackDashboard() {
             maxHeight: '500px'
           }}>
             {evidence}
+          </div>
+        )}
+
+        {evidence && result && result.nlp_confidence !== undefined && (
+          <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            <span style={{ backgroundColor: 'rgba(255,255,255,0.05)', padding: '0.3rem 0.6rem', borderRadius: '4px' }}>
+              NLP Model: <span style={{ color: 'var(--cyber-cyan)' }}>TF-IDF + Cosine Similarity</span>
+            </span>
+            <span style={{ backgroundColor: 'rgba(255,255,255,0.05)', padding: '0.3rem 0.6rem', borderRadius: '4px' }}>
+              Confidence: <span style={{ color: result.nlp_confidence > 50 ? '#4ade80' : '#f87171' }}>{result.nlp_confidence}%</span>
+            </span>
           </div>
         )}
       </div>

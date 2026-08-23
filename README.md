@@ -124,6 +124,26 @@ npm run dev
 ```
 *The frontend will now be running on `http://localhost:5173`*
 
+## 🔥 Post-Mortem: What Broke at 2 AM
+
+During development, the **AI Merchant Underwriting** module began failing silently. The VADER sentiment analysis was returning bizarrely negative trust scores (like -80) for perfectly legitimate merchants.
+
+**The Debugging Process:**
+1. I logged the raw text being fed into the VADER analyzer.
+2. I realized the `requests.get()` call was returning the raw HTML, and my initial `BeautifulSoup` parsing was extracting *all* text — including inline JavaScript, CSS styles, and minified code. 
+3. The NLP model was trying to analyze code syntax like `function(e,t){return...}` and interpreting the dense, non-human syntax as highly negative sentiment.
+
+**The Fix:**
+I updated the scraper to explicitly extract and strip `<script>` and `<style>` tags before pulling the text (see `underwriting_engine.py` line 80). I also added a fallback: if the site blocks the scraper (which happens often with modern WAFs), the system gracefully degrades by injecting the URL itself into the text corpus so URL-based violations (e.g., `binance.com`) are still caught.
+
+## 🛡️ Graceful Degradation & System Failures
+
+A core requirement for the AI Risk Manager is handling system failures safely. The Vanguard Risk Engine implements fallback mechanisms across all external dependencies:
+
+1. **FX API Outage:** If the live Frankfurter API goes down (or rate-limits us), the `fx_risk_engine` catches the `requests.exceptions.RequestException` and automatically falls back to a hardcoded set of baseline exchange rates. It continues to function, allowing the risk score to rely more heavily on the RSS news sentiment.
+2. **Scraper Blocks (WAFs):** If a merchant's Cloudflare or WAF blocks our scraping bot (HTTP 403), the underwriting engine doesn't crash. It catches the error, alerts the system, and relies purely on URL pattern matching.
+3. **Frontend API Failure:** If the backend goes offline, the frontend's Activity Feed falls back to a set of static, realistic events so the dashboard UI doesn't break, while showing a disconnected state.
+
 ## 🧪 Testing Guide
 
 ### Automated Tests (Backend)

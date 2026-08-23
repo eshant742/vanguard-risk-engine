@@ -3,6 +3,8 @@ import requests
 import re
 from bs4 import BeautifulSoup
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from sklearn.feature_extraction.text import TfidfVectorizer
+import numpy as np
 
 logger = logging.getLogger("vanguard.underwriting")
 analyzer = SentimentIntensityAnalyzer()
@@ -45,19 +47,51 @@ def _context_is_whitelisted(keyword: str, text: str) -> bool:
 def _keyword_in_text(keyword: str, text: str) -> bool:
     """
     Check if a keyword exists in text using word-boundary-aware matching.
-    Handles both multi-word phrases and single words, including URL segments.
     """
-    # \b matches word boundaries, perfectly handling spaces, dots, slashes, etc.
-    # This prevents 'gun' from matching 'burgundy' but allows it to match 'example.com/gun'
     pattern = r'\b' + re.escape(keyword) + r'\b'
     return bool(re.search(pattern, text, re.IGNORECASE))
 
 
+def _extract_top_keywords(text: str, top_n: int = 5) -> list:
+    """
+    Extracts the most statistically significant keywords from the scraped text
+    using TF-IDF. This provides a genuine NLP summary of what the business does.
+    """
+    if len(text.strip()) < 50:
+        return []
+    
+    try:
+        # We use a single document corpus here just to extract term frequencies
+        # filtered by standard english stop words.
+        vectorizer = TfidfVectorizer(stop_words='english', max_features=20, ngram_range=(1, 2))
+        tfidf_matrix = vectorizer.fit_transform([text])
+        
+        feature_names = vectorizer.get_feature_names_out()
+        scores = tfidf_matrix.toarray()[0]
+        
+        # Sort by score descending
+        sorted_indices = np.argsort(scores)[::-1]
+        
+        top_keywords = []
+        for idx in sorted_indices:
+            kw = feature_names[idx]
+            # Filter out numbers and very short words
+            if not kw.isnumeric() and len(kw) > 3:
+                top_keywords.append(kw)
+            if len(top_keywords) == top_n:
+                break
+                
+        return top_keywords
+    except Exception as e:
+        logger.warning(f"TF-IDF extraction failed: {e}")
+        return []
+
+
 def analyze_merchant(url: str):
     """
-    Scrapes the merchant URL, analyzes text for compliance and sentiment.
+    Scrapes the merchant URL, analyzes text for compliance and sentiment,
+    and extracts statistical TF-IDF keywords.
     """
-    # Ensure URL has scheme
     if not url.startswith("http"):
         url = "https://" + url
 
@@ -65,7 +99,6 @@ def analyze_merchant(url: str):
     scrape_status = ""
 
     try:
-        # Simulate a real browser to avoid basic blocks
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
@@ -76,7 +109,6 @@ def analyze_merchant(url: str):
         
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        # Extract visible text
         for script in soup(["script", "style"]):
             script.extract()
         text = soup.get_text(separator=' ', strip=True).lower()
@@ -91,21 +123,21 @@ def analyze_merchant(url: str):
     except Exception as e:
         scrape_status = f"Site blocked scraper ({type(e).__name__}). Falling back to URL analysis."
         
-    # If the site blocked us (or requires JS to load) and returned insufficient text
     if len(text) < 500:
         if "Successfully" in scrape_status:
             scrape_status = "Site requires JavaScript or returned minimal content. Relying heavily on URL analysis."
 
+    # Extract statistical summary keywords (NLP)
+    business_keywords = _extract_top_keywords(text)
+
     # ALWAYS inject the URL itself into the text corpus so we never miss URL-based violations
     text = text + " " + url.lower()
 
-    # Analyze Sentiment (only if we got meaningful text)
     if len(text) > 200:
         sentiment_scores = analyzer.polarity_scores(text)
     else:
         sentiment_scores = {'compound': 0.0}
     
-    # Keyword Risk Analysis (word-boundary-aware matching with whitelist filtering)
     found_prohibited = []
     for kw in PROHIBITED_KEYWORDS:
         if _keyword_in_text(kw, text) and kw not in found_prohibited:
@@ -118,27 +150,20 @@ def analyze_merchant(url: str):
             if not _context_is_whitelisted(kw, text):
                 found_high_risk.append(kw)
     
-    # Calculate Trust Score (0-100) with weighted deductions
     trust_score = 100
     
-    # Deductions
     if found_prohibited:
-        # Prohibited items are severe violations. Any single violation drops score below REJECT threshold.
         trust_score -= 75 + (len(found_prohibited) * 10)
     if found_high_risk:
-        # High risk items are a warning
         trust_score -= min(40, len(found_high_risk) * 20)
         
-    # If the site is extremely negative
     if sentiment_scores['compound'] < -0.5:
         trust_score -= 20
     elif sentiment_scores['compound'] < -0.2:
         trust_score -= 10
         
-    # Ensure score is within bounds
     trust_score = max(0, min(100, trust_score))
     
-    # Determine Status
     if trust_score < 40:
         status = "REJECT"
         action_color = "red"
@@ -157,7 +182,8 @@ def analyze_merchant(url: str):
         "flags": {
             "prohibited_items": list(set(found_prohibited)),
             "high_risk_items": list(set(found_high_risk)),
-            "sentiment_compound": round(sentiment_scores['compound'], 2)
+            "sentiment_compound": round(sentiment_scores['compound'], 2),
+            "business_keywords": business_keywords
         },
         "summary": f"{scrape_status} Found {len(set(found_prohibited))} prohibited and {len(set(found_high_risk))} high-risk terms."
     }

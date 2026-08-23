@@ -142,6 +142,27 @@ export default function AbuseRingDashboard() {
                 </div>
               )}
 
+              {ring.graph_metrics && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '1rem', backgroundColor: 'rgba(255,255,255,0.02)', padding: '0.8rem', borderRadius: '4px' }}>
+                  <div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>SUBGRAPH DENSITY</div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-light)', fontFamily: "'JetBrains Mono', monospace" }}>{ring.graph_metrics.subgraph_density}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>SHARING RATIO</div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-light)', fontFamily: "'JetBrains Mono', monospace" }}>{ring.graph_metrics.sharing_ratio}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>AVG PAGERANK</div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-light)', fontFamily: "'JetBrains Mono', monospace" }}>{ring.graph_metrics.avg_pagerank}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>DEGREE CENTRALITY</div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-light)', fontFamily: "'JetBrains Mono', monospace" }}>{ring.graph_metrics.avg_degree_centrality}</div>
+                  </div>
+                </div>
+              )}
+
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
                 <div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Unique Cards Used</div>

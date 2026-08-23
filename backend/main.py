@@ -1,16 +1,19 @@
-import hashlib
-import random
 import logging
 from datetime import datetime, timezone
+import random
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+# Import all Engine Modules
 from ml_engine import initialize_model, predict_transaction
 from underwriting_engine import analyze_merchant
 from fx_risk_engine import get_fx_risk_data
+from chargeback_engine import generate_evidence
+from abuse_ring_engine import scan_abuse_rings
+from return_risk_engine import calculate_return_risk_score
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -34,6 +37,16 @@ app = FastAPI(
     description="AI-powered risk management platform for Razorpay",
     version="1.0.0",
     lifespan=lifespan,
+)
+
+# BUG FIX: CORS middleware must be added before routes and with specific origins
+# when allow_credentials=True is used to prevent security vulnerabilities.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -77,15 +90,6 @@ def health_check():
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
-# Allow frontend to connect
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 
 # ──────────────────────────────────────────────
 # 1. FRAUD-SPIKE DETECTOR (ML)
@@ -128,77 +132,12 @@ class Dispute(BaseModel):
 
 
 @app.post("/api/fraud/chargeback")
-def generate_chargeback_evidence(dispute: Dispute):
-    # Generate deterministic-but-unique transaction data from the transaction ID
-    # This makes each submission look realistic while being reproducible
-    seed = int(hashlib.md5(dispute.transaction_id.encode()).hexdigest()[:8], 16)
-    rng = random.Random(seed)
-
-    ip_octets = f"{rng.randint(10,220)}.{rng.randint(1,255)}.{rng.randint(1,255)}.{rng.randint(1,255)}"
-    tracking = f"BD{rng.randint(10000000, 99999999)}IN"
-    day = rng.randint(1, 28)
-    hour = rng.randint(8, 23)
-    minute = rng.randint(0, 59)
-    second = rng.randint(0, 59)
-    devices = ["iPhone 15 Pro - Safari", "iPhone 14 Pro - Safari", "Samsung S24 - Chrome", "Pixel 8 - Chrome"]
-    carriers = ["BlueDart", "DTDC", "Delhivery", "Ecom Express"]
-
-    txn_data = {
-        "date": f"2026-08-{day:02d} {hour:02d}:{minute:02d}:{second:02d} UTC",
-        "ip_address": f"{ip_octets} (Verified India)",
-        "avs_match": "YES (Zip Code & Address Matched)",
-        "cvv_match": "YES",
-        "delivery_status": f"DELIVERED via {rng.choice(carriers)} (Tracking: {tracking})",
-        "device_fingerprint": f"{rng.choice(devices)} - Trusted Device"
-    }
-    
-    # NLP Heuristic to draft letter based on claim
-    claim = dispute.customer_claim.lower()
-    defense_strategy = ""
-    
-    if "not received" in claim or "didn't get" in claim or "never received" in claim or "not delivered" in claim:
-        defense_strategy = f"The customer claims non-receipt, but our logistics integration proves successful delivery. Tracking # {tracking} confirms delivery to the AVS-verified billing address on {txn_data['date']}."
-    elif "unauthorized" in claim or "stolen" in claim or "didn't authorize" in claim or "not me" in claim:
-        defense_strategy = f"The customer claims unauthorized use. However, the transaction was made from a trusted device fingerprint associated with their previous purchases, and both CVV and Address Verification System (AVS) matched perfectly. The IP address {txn_data['ip_address']} matches their historical location."
-    elif "defective" in claim or "broken" in claim or "damaged" in claim or "not working" in claim:
-        defense_strategy = f"The customer claims product defect. Our records show the item was delivered intact per carrier confirmation ({txn_data['delivery_status']}). The merchant's return policy requires the customer to initiate a return within 7 days, which was not done. No prior contact was made to customer support before filing this chargeback."
-    elif "cancelled" in claim or "refund" in claim:
-        defense_strategy = f"The customer claims they requested cancellation. Our system logs show no cancellation request was received prior to fulfillment. The order was processed, shipped, and delivered successfully ({txn_data['delivery_status']})."
-    else:
-        defense_strategy = f"All cryptographic and logistical checkpoints (AVS, CVV, IP, and Device Fingerprinting) were successfully verified at the time of checkout, proving the cardholder willingly authorized this transaction."
-
-    evidence_letter = f"""=========================================================
-CHARGEBACK DISPUTE EVIDENCE LETTER (VISA/MASTERCARD)
-=========================================================
-TRANSACTION ID : {dispute.transaction_id}
-MERCHANT NAME  : Razorpay Gateway Merchant
-DISPUTE REASON : "{dispute.customer_claim}"
-=========================================================
-
-To the Issuing Bank,
-
-We are submitting compelling evidence to contest the chargeback for Transaction {dispute.transaction_id}.
-
-1. AUTHORIZATION PROOF:
-- AVS Match: {txn_data['avs_match']}
-- CVV Match: {txn_data['cvv_match']}
-- IP Address: {txn_data['ip_address']}
-- Device ID: {txn_data['device_fingerprint']}
-
-2. FULFILLMENT PROOF:
-- Date: {txn_data['date']}
-- Status: {txn_data['delivery_status']}
-
-3. DEFENSE SUMMARY:
-{defense_strategy}
-
-Given this cryptographic and logistical evidence, we request that this chargeback be immediately reversed in the merchant's favor.
-
-Sincerely,
-Vanguard Risk Engine (Automated Dispute Responder)
-Razorpay AI Buildathon — Track 02: AI Risk Manager"""
-
-    return {"evidence_letter": evidence_letter}
+def chargeback_endpoint(dispute: Dispute):
+    try:
+        return generate_evidence(dispute.transaction_id, dispute.customer_claim)
+    except Exception as e:
+        logger.error(f"Chargeback generation failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ──────────────────────────────────────────────
@@ -207,59 +146,14 @@ Razorpay AI Buildathon — Track 02: AI Risk Manager"""
 
 @app.get("/api/fraud/abuse-ring")
 def get_abuse_rings():
-    # Simulate scanning the last 24 hours of transactions for clusters
-    return {
-        "scan_timestamp": datetime.now(timezone.utc).isoformat(),
-        "total_transactions_scanned": 14829,
-        "active_rings": [
-            {
-                "ring_id": "RNG-8472-B",
-                "shared_vector": "IP Address: 103.44.21.99 (VPN Data Center)",
-                "unique_cards_used": 7,
-                "total_attempted_inr": 145000,
-                "status": "BLOCKED (Sentinel Activated)",
-                "detection_method": "IP Clustering + Velocity Analysis",
-                "nodes": [
-                    "Card ending in 4412 (Failed)",
-                    "Card ending in 9921 (Failed)",
-                    "Card ending in 1184 (Failed)",
-                    "Card ending in 7733 (Failed)",
-                    "Card ending in 2291 (Failed)",
-                    "Card ending in 5544 (Failed)",
-                    "Card ending in 8811 (Failed)"
-                ]
-            },
-            {
-                "ring_id": "RNG-9910-X",
-                "shared_vector": "Device Fingerprint: Hash-99A1B2 (Android Emulator)",
-                "unique_cards_used": 4,
-                "total_attempted_inr": 82000,
-                "status": "BLOCKED (Sentinel Activated)",
-                "detection_method": "Device Fingerprint Clustering",
-                "nodes": [
-                    "Card ending in 1122 (Failed)",
-                    "Card ending in 3344 (Failed)",
-                    "Card ending in 5566 (Failed)",
-                    "Card ending in 7788 (Failed)"
-                ]
-            },
-            {
-                "ring_id": "RNG-3301-K",
-                "shared_vector": "Shipping Address: 42 MG Road, Bangalore (Drop Location)",
-                "unique_cards_used": 5,
-                "total_attempted_inr": 67500,
-                "status": "BLOCKED (Sentinel Activated)",
-                "detection_method": "Shipping Address Graph Analysis",
-                "nodes": [
-                    "Card ending in 2233 (Failed)",
-                    "Card ending in 4455 (Failed)",
-                    "Card ending in 6677 (Failed)",
-                    "Card ending in 8899 (Failed)",
-                    "Card ending in 1010 (Failed)"
-                ]
-            }
-        ]
-    }
+    """
+    Returns detected fraud rings discovered via Graph Analysis.
+    """
+    try:
+        return scan_abuse_rings()
+    except Exception as e:
+        logger.error(f"Abuse ring scan failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ──────────────────────────────────────────────
@@ -274,61 +168,16 @@ class ReturnHistory(BaseModel):
 
 
 @app.post("/api/fraud/return-risk")
-def calculate_return_risk(history: ReturnHistory):
-    total_purchases = history.items_kept_last_year + history.items_returned_last_year
-    
-    if total_purchases == 0:
-        return {
-            "return_probability": 10.0,
-            "risk_level": "LOW",
-            "action": "STANDARD_POLICY",
-            "recommendation": "New customer with no purchase history. Offer standard free returns to build loyalty.",
-            "breakdown": {
-                "return_rate": 0.0,
-                "cart_risk_factor": round(history.current_cart_value / 50000 * 5, 2),
-                "history_factor": 0.0
-            }
-        }
-        
-    return_rate = history.items_returned_last_year / total_purchases
-    
-    # Improved formula: weighted combination with reasonable cart impact
-    # Cart factor: ₹50,000+ carts add up to 10 points (not 100)
-    history_factor = return_rate * 100
-    cart_risk_factor = min((history.current_cart_value / 50000) * 10, 10)
-    
-    return_probability = min(round(history_factor + cart_risk_factor, 2), 99.9)
-    
-    breakdown = {
-        "return_rate": round(return_rate * 100, 1),
-        "cart_risk_factor": round(cart_risk_factor, 2),
-        "history_factor": round(history_factor, 2)
-    }
-    
-    if return_probability > 75.0:
-        return {
-            "return_probability": return_probability,
-            "risk_level": "CRITICAL",
-            "action": "DISABLE_FREE_RETURNS",
-            "recommendation": f"Customer has a {round(return_rate*100)}% historical return rate. AI strongly recommends disabling 'Free Returns' and enforcing a 15% restocking fee for this high-value cart to protect merchant margins.",
-            "breakdown": breakdown
-        }
-    elif return_probability > 40.0:
-        return {
-            "return_probability": return_probability,
-            "risk_level": "MEDIUM",
-            "action": "WARNING_PROMPT",
-            "recommendation": "Customer has moderate return risk. Show a warning at checkout that returns must be in original packaging with tags attached.",
-            "breakdown": breakdown
-        }
-    else:
-        return {
-            "return_probability": return_probability,
-            "risk_level": "LOW",
-            "action": "STANDARD_POLICY",
-            "recommendation": "Customer is highly profitable. Proceed with standard Free Returns.",
-            "breakdown": breakdown
-        }
+def return_risk_endpoint(history: ReturnHistory):
+    try:
+        return calculate_return_risk_score(
+            history.items_kept_last_year,
+            history.items_returned_last_year,
+            history.current_cart_value
+        )
+    except Exception as e:
+        logger.error(f"Return risk calculation failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ──────────────────────────────────────────────
@@ -412,15 +261,18 @@ def get_activity_feed():
     events = []
     now = datetime.now()
     base_hour = now.hour
-    base_min = max(0, now.minute - rng.randint(5, 20))
+    # BUG FIX: Use cumulative offset instead of random offset per iteration to avoid clamping
+    current_min = max(0, now.minute - rng.randint(5, 15))
     
     for i in range(8):
         category = rng.choice(event_templates)
         template = rng.choice(category["templates"])
         
-        minute = min(59, base_min + i * rng.randint(1, 3))
         second = rng.randint(0, 59)
-        timestamp = f"{base_hour:02d}:{minute:02d}:{second:02d}"
+        timestamp = f"{base_hour:02d}:{current_min:02d}:{second:02d}"
+        
+        # Advance minute slightly for next event
+        current_min = min(59, current_min + rng.randint(1, 3))
         
         message = template.format(
             ip=f"{rng.randint(100,200)}.{rng.randint(1,255)}.{rng.randint(1,99)}.{rng.randint(1,255)}",

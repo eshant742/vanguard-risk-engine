@@ -6,6 +6,7 @@ from sklearn.metrics import (
     precision_score, recall_score, f1_score,
     accuracy_score, roc_auc_score, confusion_matrix
 )
+import shap
 
 # Consistent feature ordering — prevents sklearn warnings
 FEATURE_COLUMNS = ['amount', 'device_velocity', 'ip_country_match', 'time_since_last_txn']
@@ -51,10 +52,11 @@ def generate_synthetic_data(n_samples=5000):
 
 # Global model state
 clf = None
+explainer = None
 metrics_cache = None
 
 def initialize_model():
-    global clf, metrics_cache
+    global clf, explainer, metrics_cache
     if clf is not None:
         return metrics_cache
         
@@ -70,6 +72,9 @@ def initialize_model():
     clf = RandomForestClassifier(n_estimators=50, random_state=42, max_depth=5)
     clf.fit(X_train, y_train)
     
+    # Initialize SHAP explainer
+    explainer = shap.TreeExplainer(clf)
+    
     # Evaluate on held-out test set
     y_pred = clf.predict(X_test)
     y_pred_proba = clf.predict_proba(X_test)
@@ -81,29 +86,22 @@ def initialize_model():
     
     # ROC-AUC (handles edge case where only one class exists)
     try:
-        # Use probability of the positive class for AUC
         roc_auc = roc_auc_score(y_test, y_pred_proba[:, 1])
     except (ValueError, IndexError):
         roc_auc = 0.0
     
     cm = confusion_matrix(y_test, y_pred)
     
-    # Calculate Financial Impact Metrics
-    # Safe access: confusion matrix can be 1x1 if model predicts only one class
     is_full_matrix = cm.shape[0] > 1 and cm.shape[1] > 1
     false_positives = int(cm[0][1]) if is_full_matrix else 0
     true_positives = int(cm[1][1]) if is_full_matrix else 0
     false_negatives = int(cm[1][0]) if is_full_matrix else 0
     true_negatives = int(cm[0][0]) if cm.shape[0] > 0 and cm.shape[1] > 0 else 0
     
-    # Cost assumptions for Buildathon metrics
-    # CLV lost per false positive = ₹2000
-    # Average fraud transaction value protected = ₹4500
     total_false_positive_cost = false_positives * 2000
     total_fraud_prevented_value = true_positives * 4500
     net_margin_protected = total_fraud_prevented_value - total_false_positive_cost
     
-    # Feature importance (Explainable AI)
     importances = clf.feature_importances_
     feature_importance = []
     for fname, imp in sorted(zip(FEATURE_COLUMNS, importances), key=lambda x: x[1], reverse=True):
@@ -135,7 +133,6 @@ def predict_transaction(txn_data: dict):
     if clf is None:
         initialize_model()
     
-    # Use consistent feature column ordering
     features = pd.DataFrame([{
         'amount': txn_data.get('amount', 0),
         'device_velocity': txn_data.get('device_velocity', 0),
@@ -146,23 +143,37 @@ def predict_transaction(txn_data: dict):
     prediction = clf.predict(features)[0]
     probabilities = clf.predict_proba(features)[0]
     
-    # Safe access: handle edge case where model only learned one class
     if len(probabilities) > 1:
         fraud_prob = round(probabilities[1] * 100, 2)
     else:
         fraud_prob = 0.0 if prediction == 0 else 100.0
     
-    # Explainable AI (XAI) feature contribution heuristic
+    # Explainable AI: SHAP values
+    shap_values = explainer.shap_values(features)
+    
+    # For RandomForestClassifier, shap_values is a list of arrays (one for each class)
+    # We want the explanation for the positive class (class 1: fraud)
+    if isinstance(shap_values, list) and len(shap_values) > 1:
+        shap_vals_fraud = shap_values[1][0]
+    else:
+        # In newer shap versions, it might just be the array if output_names are handled differently
+        shap_vals_fraud = shap_values[0] if len(shap_values.shape) == 2 else shap_values[0,:,1] if len(shap_values.shape) > 2 else shap_values[0]
+        if isinstance(shap_vals_fraud, (list, np.ndarray)) and len(shap_vals_fraud) > 0 and isinstance(shap_vals_fraud[0], (list, np.ndarray)):
+            shap_vals_fraud = shap_values[0][1] if len(shap_values) > 0 else shap_values[0]
+
+    # Normalize SHAP values to percentages to show contribution
+    # We only care about positive contributions pushing towards fraud
+    total_positive_shap = sum([v for v in shap_vals_fraud if v > 0])
+    
     xai_reasons = []
-    if txn_data.get('device_velocity', 0) > 2:
-        xai_reasons.append(f"High Device Velocity ({txn_data.get('device_velocity')} txns/hr)")
-    if txn_data.get('ip_country_match', 1) == 0:
-        xai_reasons.append("IP Country Mismatch")
-    if txn_data.get('amount', 0) > 3000:
-        xai_reasons.append(f"High Amount (₹{txn_data.get('amount')})")
-    if txn_data.get('time_since_last_txn', 100) < 5:
-        xai_reasons.append("Rapid Successive Transaction (<5 mins)")
-        
+    if total_positive_shap > 0 and prediction == 1:
+        for fname, s_val in zip(FEATURE_COLUMNS, shap_vals_fraud):
+            if s_val > 0:
+                contribution = (s_val / total_positive_shap) * 100
+                if contribution > 5.0: # Only report significant factors
+                    val = features[fname].iloc[0]
+                    xai_reasons.append(f"{fname.replace('_', ' ').title()} ({contribution:.1f}%)")
+    
     reason_str = ""
     if prediction:
         if xai_reasons:

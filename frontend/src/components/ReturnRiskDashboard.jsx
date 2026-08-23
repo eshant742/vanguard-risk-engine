@@ -190,19 +190,22 @@ export default function ReturnRiskDashboard() {
             {/* Risk Breakdown */}
             {result.breakdown && (
               <div style={{ backgroundColor: 'var(--panel-charcoal)', border: '1px solid var(--border-faint)', borderRadius: '8px', padding: '1rem' }}>
-                <div style={{ fontSize: '0.85rem', color: 'var(--cyber-cyan)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.75rem', fontWeight: 'bold' }}>Risk Breakdown</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--cyber-cyan)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 'bold' }}>Risk Breakdown</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', backgroundColor: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>Model: Logistic Regression</div>
+                </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.9rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-light)' }}>
                     <span>Historical Return Rate</span>
                     <span style={{ color: getRiskColor(result.risk_level), fontWeight: '600' }}>{result.breakdown.return_rate}%</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-light)' }}>
-                    <span>History Risk Factor</span>
+                    <span>History Risk Factor (Weight)</span>
                     <span style={{ fontWeight: '600', fontFamily: "'JetBrains Mono', monospace" }}>{result.breakdown.history_factor}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-light)' }}>
-                    <span>Cart Value Risk Factor</span>
-                    <span style={{ fontWeight: '600', fontFamily: "'JetBrains Mono', monospace" }}>+{result.breakdown.cart_risk_factor}</span>
+                    <span>Cart Value Risk Factor (Weight)</span>
+                    <span style={{ fontWeight: '600', fontFamily: "'JetBrains Mono', monospace" }}>{result.breakdown.cart_risk_factor >= 0 ? '+' : ''}{result.breakdown.cart_risk_factor}</span>
                   </div>
                 </div>
               </div>

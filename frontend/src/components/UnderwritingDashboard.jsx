@@ -191,6 +191,24 @@ export default function UnderwritingDashboard() {
                   </div>
                 )}
 
+                {result.flags.business_keywords && result.flags.business_keywords.length > 0 && (
+                  <div className="card" style={{ padding: '1.5rem', border: '1px solid var(--border-color)', gridColumn: '1 / -1' }}>
+                    <h4 style={{ color: 'var(--cyber-cyan)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                      <ShieldCheck size={18} /> AI Business Summary (TF-IDF Keywords)
+                    </h4>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      {result.flags.business_keywords.map((kw, i) => (
+                        <span key={i} style={{ background: 'var(--panel-charcoal)', color: 'var(--text-main)', padding: '0.3rem 0.8rem', borderRadius: '4px', fontSize: '0.85rem', border: '1px solid var(--border-faint)', fontFamily: "'JetBrains Mono', monospace" }}>
+                          {kw}
+                        </span>
+                      ))}
+                    </div>
+                    <p style={{ marginTop: '0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      These statistically significant terms were extracted from the website's corpus to identify the core product offering.
+                    </p>
+                  </div>
+                )}
+
                 {/* Show clean report when nothing flagged */}
                 {(!result.flags.prohibited_items || result.flags.prohibited_items.length === 0) && 
                  (!result.flags.high_risk_items || result.flags.high_risk_items.length === 0) && (
