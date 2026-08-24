@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { API_BASE } from '../App'
 
 export default function ReturnRiskDashboard() {
+  const [customerId, setCustomerId] = useState("CUST-991A")
   const [itemsKept, setItemsKept] = useState(2)
   const [itemsReturned, setItemsReturned] = useState(8)
   const [cartValue, setCartValue] = useState(12500)
@@ -23,7 +24,7 @@ export default function ReturnRiskDashboard() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          customer_id: "CUST-991A",
+          customer_id: customerId,
           items_kept_last_year: parseInt(itemsKept),
           items_returned_last_year: parseInt(itemsReturned),
           current_cart_value: parseFloat(cartValue)
@@ -71,6 +72,17 @@ export default function ReturnRiskDashboard() {
         
         <form onSubmit={handleScore} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <label style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textTransform: 'uppercase' }}>Customer ID</label>
+            <input 
+              type="text" 
+              className="input-box" 
+              value={customerId}
+              onChange={(e) => setCustomerId(e.target.value)}
+              required
+            />
+          </div>
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <label style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textTransform: 'uppercase' }}>Items Kept (Last 12 Months)</label>
             <input 

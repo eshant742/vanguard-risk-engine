@@ -1,7 +1,9 @@
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import random
 from contextlib import asynccontextmanager
+import ipaddress
+from urllib.parse import urlparse
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -170,13 +172,14 @@ class ReturnHistory(BaseModel):
 @app.post("/api/fraud/return-risk")
 def return_risk_endpoint(history: ReturnHistory):
     try:
+        logger.info(f"Return risk check for customer: {history.customer_id}")
         return calculate_return_risk_score(
             history.items_kept_last_year,
             history.items_returned_last_year,
             history.current_cart_value
         )
     except Exception as e:
-        logger.error(f"Return risk calculation failed: {e}")
+        logger.error(f"Return risk calculation failed for {history.customer_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -191,7 +194,23 @@ class UnderwriteRequest(BaseModel):
 @app.post("/api/underwrite")
 def underwrite_merchant(req: UnderwriteRequest):
     try:
+        # SSRF Protection: reject URLs pointing to private/internal IP ranges
+        parsed = urlparse(req.url if req.url.startswith("http") else f"https://{req.url}")
+        hostname = parsed.hostname or ""
+        if hostname:
+            try:
+                ip = ipaddress.ip_address(hostname)
+                if ip.is_private or ip.is_loopback or ip.is_reserved:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"URL points to a private/internal IP address ({hostname}). This is not allowed."
+                    )
+            except ValueError:
+                # hostname is a domain name, not an IP — that's normal and fine
+                pass
         return analyze_merchant(req.url)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Underwriting failed for {req.url}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -260,19 +279,20 @@ def get_activity_feed():
     
     events = []
     now = datetime.now()
-    base_hour = now.hour
-    # BUG FIX: Use cumulative offset instead of random offset per iteration to avoid clamping
-    current_min = max(0, now.minute - rng.randint(5, 15))
+    
+    # Generate timestamps going BACKWARD from now for realism
+    # Start at current time and subtract increasing offsets
+    cumulative_offset_seconds = rng.randint(30, 120)  # First event is 30-120 seconds ago
     
     for i in range(8):
         category = rng.choice(event_templates)
         template = rng.choice(category["templates"])
         
-        second = rng.randint(0, 59)
-        timestamp = f"{base_hour:02d}:{current_min:02d}:{second:02d}"
+        event_time = now - timedelta(seconds=cumulative_offset_seconds)
+        timestamp = event_time.strftime("%H:%M:%S")
         
-        # Advance minute slightly for next event
-        current_min = min(59, current_min + rng.randint(1, 3))
+        # Increase offset for next (older) event
+        cumulative_offset_seconds += rng.randint(60, 300)
         
         message = template.format(
             ip=f"{rng.randint(100,200)}.{rng.randint(1,255)}.{rng.randint(1,99)}.{rng.randint(1,255)}",
@@ -291,5 +311,8 @@ def get_activity_feed():
             "type": category["type"],
             "message": message
         })
+    
+    # Events are most recent first; reverse for chronological order
+    events.reverse()
     
     return {"events": events}

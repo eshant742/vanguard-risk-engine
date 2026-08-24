@@ -151,15 +151,21 @@ def predict_transaction(txn_data: dict):
     # Explainable AI: SHAP values
     shap_values = explainer.shap_values(features)
     
-    # For RandomForestClassifier, shap_values is a list of arrays (one for each class)
-    # We want the explanation for the positive class (class 1: fraud)
+    # TreeExplainer + RandomForestClassifier returns a list of ndarrays:
+    #   shap_values[0] = SHAP values for class 0 (safe)
+    #   shap_values[1] = SHAP values for class 1 (fraud)
+    # Each is shape (n_samples, n_features). We want class 1, sample 0.
     if isinstance(shap_values, list) and len(shap_values) > 1:
         shap_vals_fraud = shap_values[1][0]
+    elif isinstance(shap_values, np.ndarray) and shap_values.ndim == 3:
+        # Newer shap versions: shape (n_samples, n_features, n_classes)
+        shap_vals_fraud = shap_values[0, :, 1]
+    elif isinstance(shap_values, np.ndarray) and shap_values.ndim == 2:
+        # Single-output mode: shape (n_samples, n_features)
+        shap_vals_fraud = shap_values[0]
     else:
-        # In newer shap versions, it might just be the array if output_names are handled differently
-        shap_vals_fraud = shap_values[0] if len(shap_values.shape) == 2 else shap_values[0,:,1] if len(shap_values.shape) > 2 else shap_values[0]
-        if isinstance(shap_vals_fraud, (list, np.ndarray)) and len(shap_vals_fraud) > 0 and isinstance(shap_vals_fraud[0], (list, np.ndarray)):
-            shap_vals_fraud = shap_values[0][1] if len(shap_values) > 0 else shap_values[0]
+        # Ultimate fallback: zero contributions (safe degradation)
+        shap_vals_fraud = np.zeros(len(FEATURE_COLUMNS))
 
     # Normalize SHAP values to percentages to show contribution
     # We only care about positive contributions pushing towards fraud

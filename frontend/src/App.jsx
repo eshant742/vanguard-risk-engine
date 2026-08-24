@@ -12,6 +12,32 @@ import './index.css'
 // Single source of truth for API URL
 export const API_BASE = 'http://localhost:8000'
 
+import React from 'react'
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+  
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error }
+  }
+  
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '2rem', textAlign: 'center', color: '#f87171' }}>
+          <h2>UI Render Error</h2>
+          <p>{this.state.error?.message || "Something went wrong rendering this module."}</p>
+          <button className="primary-btn" onClick={() => this.setState({ hasError: false })} style={{ marginTop: '1rem' }}>Try Again</button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
 /**
  * Safe text highlighting — replaces dangerouslySetInnerHTML.
  * Splits text on known patterns and wraps matches in styled spans.
@@ -221,15 +247,17 @@ function App() {
         </div>
 
         <div className="dashboard-content">
-          <div key={tabKey} className="dashboard-view-enter">
-            {activeTab === 'fraud' && <FraudDetectorDashboard />}
-            {activeTab === 'metrics' && <MLMetricsDashboard />}
-            {activeTab === 'chargeback' && <ChargebackDashboard />}
-            {activeTab === 'abuse' && <AbuseRingDashboard />}
-            {activeTab === 'returnrisk' && <ReturnRiskDashboard />}
-            {activeTab === 'underwrite' && <UnderwritingDashboard />}
-            {activeTab === 'fx' && <FXRiskDashboard />}
-          </div>
+          <ErrorBoundary>
+            <div key={tabKey} className="dashboard-view-enter">
+              {activeTab === 'fraud' && <FraudDetectorDashboard />}
+              {activeTab === 'metrics' && <MLMetricsDashboard />}
+              {activeTab === 'chargeback' && <ChargebackDashboard />}
+              {activeTab === 'abuse' && <AbuseRingDashboard />}
+              {activeTab === 'returnrisk' && <ReturnRiskDashboard />}
+              {activeTab === 'underwrite' && <UnderwritingDashboard />}
+              {activeTab === 'fx' && <FXRiskDashboard />}
+            </div>
+          </ErrorBoundary>
         </div>
       </main>
     </div>

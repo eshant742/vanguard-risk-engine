@@ -113,3 +113,28 @@ class TestUnderwritingEngine:
         result = analyze_merchant("https://www.binance.com")
         assert "prohibited" in result["summary"].lower()
 
+    def test_business_keywords_is_list_of_strings(self):
+        """Business keywords must be a list of strings extracted via TF-IDF."""
+        result = analyze_merchant("https://www.example.com")
+        kw = result["flags"]["business_keywords"]
+        assert isinstance(kw, list)
+        for item in kw:
+            assert isinstance(item, str)
+            assert len(item) > 3  # Filtered out short words
+
+    def test_ssrf_protection_rejects_localhost(self):
+        """Underwriting endpoint must reject URLs pointing to localhost."""
+        resp = client.post("/api/underwrite", json={"url": "http://127.0.0.1:8000"})
+        assert resp.status_code == 400
+        assert "private" in resp.json()["detail"].lower() or "internal" in resp.json()["detail"].lower()
+
+    def test_ssrf_protection_rejects_private_ip(self):
+        """Underwriting endpoint must reject URLs pointing to private IPs."""
+        resp = client.post("/api/underwrite", json={"url": "http://192.168.1.1"})
+        assert resp.status_code == 400
+
+    def test_ssrf_allows_public_domains(self):
+        """Underwriting endpoint must allow public domain names."""
+        resp = client.post("/api/underwrite", json={"url": "https://example.com"})
+        assert resp.status_code == 200
+

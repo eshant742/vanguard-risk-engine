@@ -44,3 +44,25 @@ class TestActivityFeed:
         for event in data["events"]:
             assert event["type"] in valid_types, f"Unknown event type: {event['type']}"
 
+    def test_event_timestamps_chronological_order(self):
+        """Events must be ordered from oldest to most recent."""
+        data = client.get("/api/fraud/activity-feed").json()
+        from datetime import datetime
+        
+        parsed_times = []
+        for event in data["events"]:
+            ts_str = event["timestamp"]
+            # Parse just the time part. We add a dummy date to allow comparison.
+            parsed_times.append(datetime.strptime(ts_str, "%H:%M:%S"))
+            
+        # The list of events should be strictly increasing in time
+        # Note: This test might fail exactly at midnight if the sequence crosses 23:59:59 to 00:00:00.
+        # But for general usage it validates the chronological sorting.
+        for i in range(1, len(parsed_times)):
+            # If the timestamp didn't cross midnight
+            if parsed_times[i] >= parsed_times[i-1]:
+                assert parsed_times[i] > parsed_times[i-1]
+            else:
+                # Crossed midnight
+                assert parsed_times[i-1].hour == 23 and parsed_times[i].hour == 0
+

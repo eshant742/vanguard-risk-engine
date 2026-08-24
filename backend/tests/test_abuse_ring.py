@@ -53,3 +53,40 @@ class TestAbuseRingSentinel:
         methods = {ring["detection_method"] for ring in data["active_rings"]}
         assert len(methods) >= 3, f"Only {len(methods)} distinct detection methods"
 
+    def test_graph_stats_structure(self):
+        """Response must include graph_stats with all algorithm metadata."""
+        data = client.get("/api/fraud/abuse-ring").json()
+        assert "graph_stats" in data
+        gs = data["graph_stats"]
+        assert "total_nodes" in gs
+        assert "total_edges" in gs
+        assert "communities_detected" in gs
+        assert "fraud_rings_identified" in gs
+        assert "algorithm" in gs
+        assert gs["total_nodes"] > 0
+        assert gs["total_edges"] > 0
+        assert gs["fraud_rings_identified"] == len(data["active_rings"])
+
+    def test_graph_algorithm_name(self):
+        """Algorithm field should mention Label Propagation."""
+        data = client.get("/api/fraud/abuse-ring").json()
+        assert "Label Propagation" in data["graph_stats"]["algorithm"]
+
+    def test_rings_sorted_by_size(self):
+        """Active rings should be sorted by unique_cards_used descending."""
+        data = client.get("/api/fraud/abuse-ring").json()
+        card_counts = [ring["unique_cards_used"] for ring in data["active_rings"]]
+        assert card_counts == sorted(card_counts, reverse=True)
+
+    def test_ring_graph_metrics_present(self):
+        """Each ring must have graph_metrics with density, pagerank, centrality, sharing_ratio."""
+        data = client.get("/api/fraud/abuse-ring").json()
+        for ring in data["active_rings"]:
+            assert "graph_metrics" in ring
+            gm = ring["graph_metrics"]
+            assert "subgraph_density" in gm
+            assert "avg_pagerank" in gm
+            assert "avg_degree_centrality" in gm
+            assert "sharing_ratio" in gm
+            assert gm["subgraph_density"] > 0
+            assert gm["sharing_ratio"] > 1.0  # Fraud rings must have high sharing

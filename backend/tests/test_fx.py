@@ -67,3 +67,22 @@ class TestFXRiskEngine:
         data = get_fx_risk_data()
         assert data["headline_count"] == len(data["news"])
 
+    def test_volatility_metrics_structure(self):
+        """FX response must include volatility_metrics with all required fields."""
+        data = get_fx_risk_data()
+        assert "volatility_metrics" in data
+        vm = data["volatility_metrics"]
+        assert "inr_volatility" in vm
+        assert "eur_volatility" in vm
+        assert "gbp_volatility" in vm
+        assert "volatility_risk_factor" in vm
+
+    def test_volatility_values_non_negative(self):
+        """All volatility values must be non-negative."""
+        data = get_fx_risk_data()
+        vm = data["volatility_metrics"]
+        assert vm["inr_volatility"] >= 0
+        assert vm["eur_volatility"] >= 0
+        assert vm["gbp_volatility"] >= 0
+        assert 0 <= vm["volatility_risk_factor"] <= 60.0  # Capped at 60 in code
+

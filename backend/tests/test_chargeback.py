@@ -49,6 +49,19 @@ class TestChargebackEvidence:
         letter = resp.json()["evidence_letter"]
         assert "cancellation" in letter.lower() or "cancel" in letter.lower()
 
+    def test_duplicate_claim_branch(self):
+        """'Duplicate charge' claim should trigger the duplicate processing defense."""
+        resp = client.post("/api/fraud/chargeback", json={
+            "transaction_id": "pay_TEST_DUP",
+            "customer_claim": "I was charged twice for the same item, duplicate charge"
+        })
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["claim_category"] == "duplicate"
+        assert "12.6.1" in data["reason_code"]
+        letter = data["evidence_letter"]
+        assert "duplicate" in letter.lower() or "single" in letter.lower()
+
     def test_generic_claim_fallback(self):
         """Unknown claim should trigger the generic cryptographic defense."""
         resp = client.post("/api/fraud/chargeback", json={
@@ -104,3 +117,44 @@ class TestChargebackEvidence:
         })
         assert resp.status_code == 422
 
+    def test_nlp_confidence_in_valid_range(self):
+        """NLP confidence must be between 0 and 100."""
+        resp = client.post("/api/fraud/chargeback", json={
+            "transaction_id": "pay_CONF",
+            "customer_claim": "I never received this package"
+        })
+        data = resp.json()
+        assert 0.0 <= data["nlp_confidence"] <= 100.0
+
+    def test_nlp_scores_has_all_categories(self):
+        """NLP scores dict must contain all 5 claim categories when claim is non-trivial."""
+        resp = client.post("/api/fraud/chargeback", json={
+            "transaction_id": "pay_SCORES",
+            "customer_claim": "The product arrived broken and defective"
+        })
+        data = resp.json()
+        expected_categories = {"non_receipt", "unauthorized", "defective", "cancellation", "duplicate"}
+        assert set(data["nlp_scores"].keys()) == expected_categories
+        for score in data["nlp_scores"].values():
+            assert isinstance(score, float)
+            assert 0.0 <= score <= 1.0
+
+    def test_low_confidence_flag_on_garbage_input(self):
+        """Garbage/ambiguous input should set low_confidence flag."""
+        resp = client.post("/api/fraud/chargeback", json={
+            "transaction_id": "pay_GARBAGE",
+            "customer_claim": "xyz abc 123 random words"
+        })
+        data = resp.json()
+        assert "low_confidence" in data
+        assert isinstance(data["low_confidence"], bool)
+
+    def test_high_confidence_on_clear_claim(self):
+        """Clear, unambiguous claim should have high confidence and low_confidence=False."""
+        resp = client.post("/api/fraud/chargeback", json={
+            "transaction_id": "pay_CLEAR",
+            "customer_claim": "I never received this item, it was never delivered"
+        })
+        data = resp.json()
+        assert data["nlp_confidence"] > 30.0
+        assert data["low_confidence"] is False

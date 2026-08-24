@@ -87,6 +87,7 @@ def get_news_sentiment():
     rss_urls = [
         "https://finance.yahoo.com/news/rssindex",
         "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGx6TVdZU0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en",
+        "https://www.reutersagency.com/feed/?taxonomy=best-sectors&post_type=best",
     ]
     
     for rss_url in rss_urls:

@@ -204,6 +204,7 @@ Razorpay AI Buildathon — Track 02: AI Risk Manager"""
         "evidence_letter": evidence_letter,
         "claim_category": category,
         "reason_code": reason_code,
-        "nlp_confidence": round(best_score * 100, 1),
-        "nlp_scores": all_scores
+        "nlp_confidence": round(float(best_score) * 100, 1),
+        "nlp_scores": all_scores,
+        "low_confidence": (float(best_score) * 100) < 30.0
     }

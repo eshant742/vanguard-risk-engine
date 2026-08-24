@@ -34,7 +34,8 @@ def _initialize_model():
     
     # Calculate historical return rate (avoid div by zero)
     total_items = items_kept + items_returned
-    return_rate = np.where(total_items > 0, items_returned / total_items, 0)
+    # Use np.divide with 'where' to avoid RuntimeWarning on division by zero
+    return_rate = np.divide(items_returned, total_items, out=np.zeros_like(total_items, dtype=float), where=total_items > 0)
     
     # Target: 1 if this cart will be returned, 0 if kept
     # Higher return rate + high cart value increases likelihood of return
