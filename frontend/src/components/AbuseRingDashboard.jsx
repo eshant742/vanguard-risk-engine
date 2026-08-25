@@ -69,7 +69,7 @@ export default function AbuseRingDashboard() {
 
   if (error && !hasScanned) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center', color: '#f87171' }}>
+      <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--danger)' }}>
         {error}. Make sure the Python backend is running!
       </div>
     )
@@ -82,7 +82,7 @@ export default function AbuseRingDashboard() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <h3 className="card-title">Active Abuse-Ring Clusters</h3>
-            <p style={{ color: 'var(--text-light)', lineHeight: '1.6', fontSize: '0.95rem' }}>
+            <p style={{ color: 'var(--text-main)', lineHeight: '1.6', fontSize: '0.95rem' }}>
               The Sentinel daemon constantly scans transaction logs for velocity clusters. It identifies organized fraud by finding instances where multiple distinct credit cards are repeatedly used from the exact same Device Fingerprint, IP Address, or Shipping Address.
             </p>
           </div>
@@ -99,8 +99,8 @@ export default function AbuseRingDashboard() {
 
         {scanInfo && (
           <div style={{ marginTop: '1rem', display: 'flex', gap: '2rem', fontSize: '0.85rem', color: 'var(--text-muted)', fontFamily: "'JetBrains Mono', monospace" }}>
-            <span>Transactions Scanned: <span style={{ color: 'var(--cyber-cyan)' }}>{scanInfo.totalScanned?.toLocaleString()}</span></span>
-            <span>Rings Detected: <span style={{ color: '#f87171' }}>{rings.length}</span></span>
+            <span>Transactions Scanned: <span style={{ color: 'var(--primary)' }}>{scanInfo.totalScanned?.toLocaleString()}</span></span>
+            <span>Rings Detected: <span style={{ color: 'var(--danger)' }}>{rings.length}</span></span>
           </div>
         )}
       </div>
@@ -108,11 +108,11 @@ export default function AbuseRingDashboard() {
       {/* Scanning animation */}
       {scanning && (
         <div className="card" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
-          <div style={{ fontSize: '1.1rem', color: 'var(--cyber-cyan)', fontFamily: "'JetBrains Mono', monospace", marginBottom: '1.5rem' }}>
+          <div style={{ fontSize: '1.1rem', color: 'var(--primary)', fontFamily: "'JetBrains Mono', monospace", marginBottom: '1.5rem' }}>
             Scanning {Math.round(scanProgress)}% of transaction logs...
           </div>
-          <div style={{ width: '100%', height: '4px', background: 'var(--panel-charcoal)', borderRadius: '2px', overflow: 'hidden', marginBottom: '1rem' }}>
-            <div style={{ width: `${scanProgress}%`, height: '100%', background: 'var(--cyber-cyan)', transition: 'width 0.3s ease', boxShadow: '0 0 10px var(--cyber-cyan-glow)' }}></div>
+          <div style={{ width: '100%', height: '4px', background: 'var(--surface-input)', borderRadius: '2px', overflow: 'hidden', marginBottom: '1rem' }}>
+            <div style={{ width: `${scanProgress}%`, height: '100%', background: 'var(--primary)', transition: 'width 0.3s ease', boxShadow: '0 0 10px var(--primary-glow)' }}></div>
           </div>
           <div className="scan-line" style={{ marginBottom: '0.5rem' }}></div>
           <div className="scan-line" style={{ animationDelay: '0.3s' }}></div>
@@ -125,8 +125,8 @@ export default function AbuseRingDashboard() {
           {rings.map((ring, idx) => (
             <div key={idx} className="card animate-fade-in" style={{ borderTop: '4px solid #f87171', animationDelay: `${idx * 0.15}s` }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h4 style={{ margin: 0, color: '#fff', fontSize: '1.1rem' }}>Cluster {ring.ring_id}</h4>
-                <span style={{ backgroundColor: 'rgba(248, 113, 113, 0.1)', color: '#f87171', padding: '0.3rem 0.6rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                <h4 style={{ margin: 0, color: 'var(--text-heading)', fontSize: '1.1rem' }}>Cluster {ring.ring_id}</h4>
+                <span style={{ backgroundColor: 'var(--danger-glow)', color: 'var(--danger)', padding: '0.3rem 0.6rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' }}>
                   {ring.status}
                 </span>
               </div>
@@ -138,7 +138,7 @@ export default function AbuseRingDashboard() {
 
               {ring.detection_method && (
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem', fontFamily: "'JetBrains Mono', monospace" }}>
-                  Detection: <span style={{ color: 'var(--cyber-cyan)' }}>{ring.detection_method}</span>
+                  Detection: <span style={{ color: 'var(--primary)' }}>{ring.detection_method}</span>
                 </div>
               )}
 
@@ -146,19 +146,19 @@ export default function AbuseRingDashboard() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '1rem', backgroundColor: 'rgba(255,255,255,0.02)', padding: '0.8rem', borderRadius: '4px' }}>
                   <div>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>SUBGRAPH DENSITY</div>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--text-light)', fontFamily: "'JetBrains Mono', monospace" }}>{ring.graph_metrics.subgraph_density}</div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-main)', fontFamily: "'JetBrains Mono', monospace" }}>{ring.graph_metrics.subgraph_density}</div>
                   </div>
                   <div>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>SHARING RATIO</div>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--text-light)', fontFamily: "'JetBrains Mono', monospace" }}>{ring.graph_metrics.sharing_ratio}</div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-main)', fontFamily: "'JetBrains Mono', monospace" }}>{ring.graph_metrics.sharing_ratio}</div>
                   </div>
                   <div>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>AVG PAGERANK</div>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--text-light)', fontFamily: "'JetBrains Mono', monospace" }}>{ring.graph_metrics.avg_pagerank}</div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-main)', fontFamily: "'JetBrains Mono', monospace" }}>{ring.graph_metrics.avg_pagerank}</div>
                   </div>
                   <div>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>DEGREE CENTRALITY</div>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--text-light)', fontFamily: "'JetBrains Mono', monospace" }}>{ring.graph_metrics.avg_degree_centrality}</div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-main)', fontFamily: "'JetBrains Mono', monospace" }}>{ring.graph_metrics.avg_degree_centrality}</div>
                   </div>
                 </div>
               )}
@@ -166,19 +166,19 @@ export default function AbuseRingDashboard() {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
                 <div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Unique Cards Used</div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#fff' }}>{ring.unique_cards_used}</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--text-heading)' }}>{ring.unique_cards_used}</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Total Attempted Vol</div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#f87171' }}>₹{ring.total_attempted_inr.toLocaleString()}</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--danger)' }}>₹{ring.total_attempted_inr.toLocaleString()}</div>
                 </div>
               </div>
 
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Detected Nodes:</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                 {ring.nodes.map((node, nIdx) => (
-                  <div key={nIdx} style={{ fontSize: '0.85rem', color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#f87171' }}></div>
+                  <div key={nIdx} style={{ fontSize: '0.85rem', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--danger)' }}></div>
                     {node}
                   </div>
                 ))}

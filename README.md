@@ -1,8 +1,15 @@
-# Vanguard Risk Engine
+<div align="center">
+  <img src="https://img.shields.io/badge/Status-Active-success.svg?style=for-the-badge" alt="Status" />
+  <img src="https://img.shields.io/badge/Python-3.x-blue.svg?style=for-the-badge&logo=python" alt="Python" />
+  <img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+  <img src="https://img.shields.io/badge/scikit--learn-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white" alt="Scikit-Learn" />
+  
+  <h1>🛡️ Vanguard Risk Engine</h1>
+  <p><b>Razorpay AI Builder Internship 2026 — Track 02: AI Risk Manager</b></p>
+</div>
 
-**Razorpay AI Builder Internship 2026 — Track 02: AI Risk Manager**
-
-Vanguard is a unified, autonomous Risk Management platform that acts as a comprehensive defense system for Razorpay merchants. It tackles six distinct classes of financial loss (Fraud, Chargebacks, Abuse Rings, Returns, Compliance, and FX Volatility) using a mix of Machine Learning (Random Forests), NLP (VADER Sentiment Analysis), and real-time streaming data.
+Vanguard is a unified, autonomous Risk Management platform that acts as a comprehensive defense system for merchants. It tackles six distinct classes of financial loss (Fraud, Chargebacks, Abuse Rings, Returns, Compliance, and FX Volatility) using a mix of Machine Learning (Random Forests), NLP (VADER Sentiment Analysis), and real-time streaming data.
 
 ## 🚀 How It Meets The Bar (Track 02 Requirements)
 
@@ -16,88 +23,35 @@ Vanguard is a unified, autonomous Risk Management platform that acts as a compre
 3. **"Strictly defense-only."**
    - Every module is purely defensive (blocking transactions, drafting defense evidence, identifying existing abuse rings, managing macro-liquidity).
 
-## 🏛️ System Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        VANGUARD RISK ENGINE                             │
-├─────────────────────┬───────────────────────────────────────────────────┤
-│                     │                                                   │
-│   React Dashboard   │              FastAPI Backend                      │
-│   (Vite + CSS)      │              (Python 3.x)                         │
-│                     │                                                   │
-│  ┌───────────────┐  │  ┌──────────────────────────────────────────────┐ │
-│  │ Fraud Detector│◄─┼──┤ ML Engine (scikit-learn Random Forest)      │ │
-│  │ Dashboard     │  │  │  ├─ 2000 synthetic transactions             │ │
-│  ├───────────────┤  │  │  ├─ 80/20 train/test split                  │ │
-│  │ ML Metrics    │◄─┼──┤  └─ XAI audit trail per prediction         │ │
-│  │ Dashboard     │  │  ├──────────────────────────────────────────────┤ │
-│  ├───────────────┤  │  │ Chargeback Responder (NLP Heuristic)        │ │
-│  │ Chargeback    │◄─┼──┤  ├─ Claim classification engine             │ │
-│  │ Dashboard     │  │  │  └─ Evidence letter generator               │ │
-│  ├───────────────┤  │  ├──────────────────────────────────────────────┤ │
-│  │ Abuse-Ring    │◄─┼──┤ Abuse-Ring Sentinel                         │ │
-│  │ Dashboard     │  │  │  └─ IP/Device/Address graph clustering      │ │
-│  ├───────────────┤  │  ├──────────────────────────────────────────────┤ │
-│  │ Return-Risk   │◄─┼──┤ Return-Risk Scorer                          │ │
-│  │ Dashboard     │  │  │  └─ Wardrobing fraud probability model      │ │
-│  ├───────────────┤  │  ├──────────────────────────────────────────────┤ │
-│  │ Underwriting  │◄─┼──┤ Underwriting Engine (NLP + Scraping)        │ │
-│  │ Dashboard     │  │  │  ├─ BeautifulSoup4 web scraper              │ │
-│  │               │  │  │  ├─ VADER sentiment analysis                │ │
-│  │               │  │  │  └─ Word-boundary keyword detection         │ │
-│  ├───────────────┤  │  ├──────────────────────────────────────────────┤ │
-│  │ FX Risk       │◄─┼──┤ FX & Liquidity Risk Engine                  │ │
-│  │ Dashboard     │  │  │  ├─ Frankfurter API (live FX rates)         │ │
-│  │               │  │  │  ├─ RSS news feed ingestion                 │ │
-│  │               │  │  │  └─ Sentiment-weighted risk scoring         │ │
-│  └───────────────┘  │  └──────────────────────────────────────────────┘ │
-│                     │                                                   │
-│  Live Threat Ticker │  Activity Feed Generator                          │
-│  (Real-time events) │  (Simulated threat stream)                        │
-└─────────────────────┴───────────────────────────────────────────────────┘
-```
-
 ## 🧩 The 6 Defense Modules
 
-1. **Live Fraud-Spike Detector (ML)**
-   - Evaluates live transactions against a Random Forest model using velocity, IP matching, and timing signals. Provides an Explainable AI (XAI) audit trail for every block.
+| Module | Engine Type | Description |
+|---|---|---|
+| **Live Fraud-Spike Detector** | `Machine Learning` | Evaluates live transactions against a Random Forest model using velocity, IP matching, and timing signals. Provides an Explainable AI (XAI) audit trail for every block. |
+| **Chargeback Evidence Auto-Responder** | `NLP / Heuristics` | Defeats "friendly fraud." Ingests customer dispute claims, cross-references internal logistics/cryptographic logs, and auto-generates formal Visa/Mastercard defense letters. |
+| **Abuse-Ring Sentinel** | `Graph & Clustering` | Daemon that scans transaction graphs for organized attacks (e.g., multiple unique cards tested against the same IP address or device fingerprint). |
+| **Return-Risk Scorer** | `Predictive Analytics` | Calculates the probability of a high-value return based on historical purchase/return ratios and dynamic cart values. Dynamically triggers restocking fees for high-risk carts. |
+| **AI Merchant Underwriting** | `NLP / Scraping` | Scrapes merchant websites on onboarding and runs NLP sentiment analysis + word-boundary-aware keyword detection to automatically flag prohibited businesses (crypto, adult, etc.). |
+| **Macroeconomic FX Risk** | `Live API / Sentiment` | Ingests live global exchange rates (via Frankfurter API) and applies NLP sentiment analysis to live financial RSS feeds to predict global market volatility and settlement risk in real-time. |
 
-2. **Chargeback Evidence Auto-Responder (NLP)**
-   - Defeats "friendly fraud." Ingests customer dispute claims, cross-references internal logistics/cryptographic logs, and auto-generates formal Visa/Mastercard defense letters.
+## 🏛️ System Architecture
 
-3. **Abuse-Ring Sentinel**
-   - Daemon that scans transaction graphs for organized attacks (e.g., multiple unique cards tested against the same IP address or device fingerprint).
+```mermaid
+graph TD
+    UI[React Dashboard - Vite + CSS] --> BE[FastAPI Backend - Python 3]
+    BE --> ML[ML Engine: scikit-learn Random Forest]
+    BE --> CB[Chargeback Responder: NLP Heuristic]
+    BE --> AR[Abuse-Ring Sentinel: Graph Clustering]
+    BE --> RR[Return-Risk Scorer: Wardrobing Model]
+    BE --> UW[Underwriting Engine: BeautifulSoup4 + VADER]
+    BE --> FX[FX Risk Engine: Frankfurter API + RSS]
+```
 
-4. **Return-Risk Scorer (Wardrobing Fraud)**
-   - Calculates the probability of a high-value return based on historical purchase/return ratios and dynamic cart values. Dynamically triggers restocking fees for high-risk carts.
+## 🛠️ Tech Stack
 
-5. **AI Merchant Underwriting (Compliance)**
-   - Scrapes merchant websites on onboarding and runs NLP sentiment analysis + word-boundary-aware keyword detection to automatically flag prohibited businesses (crypto, adult, etc.).
-
-6. **Macroeconomic FX & Liquidity Risk**
-   - Ingests live global exchange rates (via Frankfurter API) and applies NLP sentiment analysis to live financial RSS feeds to predict global market volatility and settlement risk in real-time.
-
-## 📡 API Reference
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/` | Project info and available routes |
-| `GET` | `/api/health` | Health check for operational verification |
-| `POST` | `/api/fraud/predict` | Run ML fraud prediction on a transaction |
-| `GET` | `/api/fraud/metrics` | Get model evaluation metrics (held-out test set) |
-| `POST` | `/api/fraud/chargeback` | Generate chargeback defense evidence letter |
-| `GET` | `/api/fraud/abuse-ring` | Get detected abuse-ring clusters |
-| `POST` | `/api/fraud/return-risk` | Score return risk for a customer profile |
-| `POST` | `/api/underwrite` | Run AI compliance analysis on a merchant URL |
-| `GET` | `/api/fx-risk` | Get live FX rates + macro risk assessment |
-| `GET` | `/api/fraud/activity-feed` | Get live activity events for threat ticker |
-
-## 🛠️ Tech Stack & Architecture
-
-*   **Backend:** Python, FastAPI, Uvicorn, scikit-learn (ML), BeautifulSoup4 (Scraping), VADER Sentiment (NLP).
-*   **Frontend:** React, Vite, Vanilla CSS (Premium Cyber-Minimalist Dark Mode).
-*   **Design:** Custom glassmorphism, responsive data visualization, and a real-time live threat ticker connected to the backend activity feed.
+*   **Backend Engine:** Python, FastAPI, Uvicorn
+*   **Machine Learning & NLP:** scikit-learn, VADER Sentiment, BeautifulSoup4
+*   **Frontend Dashboard:** React, Vite
 
 ## ⚙️ How to Run the Project Locally
 
@@ -124,49 +78,23 @@ npm run dev
 ```
 *The frontend will now be running on `http://localhost:5173`*
 
-## 🔥 Post-Mortem: What Broke at 2 AM
+## 🔥 Post-Mortem: Build Challenges & Technical Obstacles
 
 During development, the **AI Merchant Underwriting** module began failing silently. The VADER sentiment analysis was returning bizarrely negative trust scores (like -80) for perfectly legitimate merchants.
 
-**The Debugging Process:**
+**The Debugging Process & Solution:**
 1. I logged the raw text being fed into the VADER analyzer.
-2. I realized the `requests.get()` call was returning the raw HTML, and my initial `BeautifulSoup` parsing was extracting *all* text — including inline JavaScript, CSS styles, and minified code. 
+2. I realized the `requests.get()` call was returning the raw HTML, and my initial `BeautifulSoup` parsing was extracting *all* text — including inline JavaScript and minified layout code. 
 3. The NLP model was trying to analyze code syntax like `function(e,t){return...}` and interpreting the dense, non-human syntax as highly negative sentiment.
-
-**The Fix:**
-I updated the scraper to explicitly extract and strip `<script>` and `<style>` tags before pulling the text (see `underwriting_engine.py` line 80). I also added a fallback: if the site blocks the scraper (which happens often with modern WAFs), the system gracefully degrades by injecting the URL itself into the text corpus so URL-based violations (e.g., `binance.com`) are still caught.
+4. **The Fix:** I updated the scraper to explicitly extract and strip layout tags before pulling the text. I also added a fallback mechanism: if the site blocks the scraper (which happens often with modern WAFs), the system gracefully degrades by injecting the URL itself into the text corpus so URL-based violations (e.g., `binance.com`) are still caught.
 
 ## 🛡️ Graceful Degradation & System Failures
 
 A core requirement for the AI Risk Manager is handling system failures safely. The Vanguard Risk Engine implements fallback mechanisms across all external dependencies:
 
-1. **FX API Outage:** If the live Frankfurter API goes down (or rate-limits us), the `fx_risk_engine` catches the `requests.exceptions.RequestException` and automatically falls back to a hardcoded set of baseline exchange rates. It continues to function, allowing the risk score to rely more heavily on the RSS news sentiment.
-2. **Scraper Blocks (WAFs):** If a merchant's Cloudflare or WAF blocks our scraping bot (HTTP 403), the underwriting engine doesn't crash. It catches the error, alerts the system, and relies purely on URL pattern matching.
+1. **FX API Outage:** If the live Frankfurter API goes down (or rate-limits us), the engine catches the exception and automatically falls back to a hardcoded set of baseline exchange rates.
+2. **Scraper Blocks (WAFs):** If a merchant's Cloudflare or WAF blocks our scraping bot, the underwriting engine doesn't crash; it relies purely on URL pattern matching.
 3. **Frontend API Failure:** If the backend goes offline, the frontend's Activity Feed falls back to a set of static, realistic events so the dashboard UI doesn't break, while showing a disconnected state.
 
-## 🧪 Testing Guide
-
-### Automated Tests (Backend)
-```bash
-cd backend
-python -m pytest test_all.py -v
-```
-
-This runs the comprehensive test suite covering:
-- ML model training, prediction, and metrics validation
-- Underwriting keyword detection (including false-positive whitelist)
-- FX risk engine data structure and bounds validation
-- Edge cases (zero values, extreme amounts, missing schemes)
-
-### Manual Testing (Full Stack)
-
-1. Open `http://localhost:5173` in your browser.
-2. Watch the **Live Stream Ticker** at the top right to see simulated real-time events generated by the backend.
-3. In the **Fraud Detector**, submit a transaction with high velocity (e.g., >3) and an IP mismatch (No) to trigger the ML block.
-4. In **ML Metrics**, observe the strict evaluation on the held-out test set, including F1 score and the False-Positive cost breakdown.
-5. In **Chargeback Responder**, type a claim like "I never received this item" vs "This transaction is unauthorized" to see the NLP engine dynamically adjust the defense strategy.
-6. In **Merchant Underwriting**, try a safe URL (`https://www.apple.com`) vs a prohibited one (`https://www.binance.com`) to see the compliance NLP in action.
-7. Wait 30 seconds on the **FX Risk Engine** tab to watch it automatically poll live market rates and recalculate the global risk score.
-
 ---
-*Built during the night shift for the Razorpay AI Buildathon.*
+*Built for the Razorpay AI Buildathon.*

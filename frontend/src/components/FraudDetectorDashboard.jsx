@@ -55,7 +55,7 @@ export default function FraudDetectorDashboard() {
         <form onSubmit={handlePredict} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textTransform: 'uppercase' }}>Transaction Amount (INR)</label>
+            <label className="input-label">Transaction Amount (INR)</label>
             <input 
               type="number" 
               className="input-box" 
@@ -68,7 +68,7 @@ export default function FraudDetectorDashboard() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textTransform: 'uppercase' }}>Device Velocity (Txns past hour)</label>
+            <label className="input-label">Device Velocity (Txns past hour)</label>
             <input 
               type="number" 
               className="input-box" 
@@ -80,7 +80,7 @@ export default function FraudDetectorDashboard() {
           </div>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textTransform: 'uppercase' }}>IP Country Matches Card Country</label>
+            <label className="input-label">IP Country Matches Card Country</label>
             <select 
               className="input-box" 
               value={ipMatch}
@@ -92,7 +92,7 @@ export default function FraudDetectorDashboard() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textTransform: 'uppercase' }}>Minutes Since Last Transaction</label>
+            <label className="input-label">Minutes Since Last Transaction</label>
             <input 
               type="number" 
               className="input-box" 
@@ -125,14 +125,18 @@ export default function FraudDetectorDashboard() {
         )}
 
         {error && (
-          <div style={{ padding: '2rem', textAlign: 'center', color: '#f87171' }}>
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--danger)' }}>
             {error}. Make sure the Python backend is running!
           </div>
         )}
 
         {!loading && !result && !error && (
-          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-            Submit a transaction to see the ML model's prediction.
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div className="empty-state-title">Awaiting Transaction Data</div>
+            <div className="empty-state-desc">Input a transaction payload and run the prediction engine to see real-time AI risk analysis.</div>
           </div>
         )}
 
@@ -140,7 +144,7 @@ export default function FraudDetectorDashboard() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ fontSize: '1.2rem', color: 'var(--text-muted)' }}>Probability of Fraud</div>
-              <div style={{ fontSize: '3rem', fontWeight: '800', color: result.is_fraud ? '#f87171' : '#4ade80' }}>
+              <div style={{ fontSize: '3rem', fontWeight: '800', color: result.is_fraud ? 'var(--danger)' : 'var(--success)' }}>
                 {result.fraud_probability}%
               </div>
             </div>
@@ -160,24 +164,24 @@ export default function FraudDetectorDashboard() {
               </div>
             </div>
             
-            <div style={{ height: '1px', backgroundColor: 'var(--border-color)', margin: '0.5rem 0' }}></div>
+            <div style={{ height: '1px', backgroundColor: 'var(--border-light)', margin: '0.5rem 0' }}></div>
             
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '100px', backgroundColor: result.is_fraud ? 'rgba(248, 113, 113, 0.1)' : 'rgba(74, 222, 128, 0.1)', color: result.is_fraud ? '#f87171' : '#4ade80', width: 'fit-content', fontWeight: '600', border: `1px solid ${result.is_fraud ? '#f87171' : '#4ade80'}` }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: result.is_fraud ? '#f87171' : '#4ade80' }}></div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '100px', backgroundColor: result.is_fraud ? 'var(--danger-glow)' : 'rgba(74, 222, 128, 0.1)', color: result.is_fraud ? 'var(--danger)' : 'var(--success)', width: 'fit-content', fontWeight: '600', border: `1px solid ${result.is_fraud ? 'var(--danger)' : 'var(--success)'}` }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: result.is_fraud ? 'var(--danger)' : 'var(--success)' }}></div>
               ACTION: {result.action}
             </div>
 
-            <p style={{ color: 'var(--text-light)', lineHeight: '1.6', fontSize: '0.95rem' }}>
+            <p style={{ color: 'var(--text-main)', lineHeight: '1.6', fontSize: '0.95rem' }}>
               {result.reason}
             </p>
 
             {result.xai_flags && result.xai_flags.length > 0 && (
-              <div style={{ marginTop: '0.5rem', backgroundColor: 'var(--panel-charcoal)', border: '1px solid var(--border-faint)', borderRadius: '8px', padding: '1rem' }}>
-                <div style={{ fontSize: '0.85rem', color: 'var(--electric-magenta)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem', fontWeight: 'bold' }}>XAI Audit Trail</div>
+              <div style={{ marginTop: '0.5rem', backgroundColor: 'var(--surface-input)', border: '1px solid var(--border-light)', borderRadius: '8px', padding: '1rem' }}>
+                <div style={{ fontSize: '0.85rem', color: 'var(--danger)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem', fontWeight: 'bold' }}>XAI Audit Trail</div>
                 <ul style={{ listStyleType: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {result.xai_flags.map((flag, idx) => (
                     <li key={idx} style={{ color: 'var(--text-main)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ color: '#f87171' }}>•</span> {flag}
+                      <span style={{ color: 'var(--danger)' }}>•</span> {flag}
                     </li>
                   ))}
                 </ul>

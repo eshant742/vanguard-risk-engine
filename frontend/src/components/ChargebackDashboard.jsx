@@ -71,7 +71,7 @@ export default function ChargebackDashboard() {
 
         <form onSubmit={handleGenerate} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textTransform: 'uppercase' }}>Transaction ID</label>
+            <label className="input-label">Transaction ID</label>
             <input 
               type="text" 
               className="input-box" 
@@ -82,7 +82,7 @@ export default function ChargebackDashboard() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textTransform: 'uppercase' }}>Customer Dispute Reason</label>
+            <label className="input-label">Customer Dispute Reason</label>
             <textarea 
               className="input-box" 
               style={{ minHeight: '100px', resize: 'vertical' }}
@@ -120,7 +120,7 @@ export default function ChargebackDashboard() {
         )}
 
         {error && (
-          <div style={{ padding: '2rem', textAlign: 'center', color: '#f87171' }}>
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--danger)' }}>
             {error}. Make sure the Python backend is running!
           </div>
         )}
@@ -137,7 +137,7 @@ export default function ChargebackDashboard() {
             padding: '1.5rem', 
             backgroundColor: '#0f1115', 
             borderRadius: '8px',
-            border: '1px solid var(--border-color)',
+            border: '1px solid var(--border-light)',
             fontFamily: "'JetBrains Mono', monospace",
             whiteSpace: 'pre-wrap',
             color: '#e2e8f0',
@@ -154,13 +154,13 @@ export default function ChargebackDashboard() {
           <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
               <span style={{ backgroundColor: 'rgba(255,255,255,0.05)', padding: '0.3rem 0.6rem', borderRadius: '4px' }}>
-                NLP Model: <span style={{ color: 'var(--cyber-cyan)' }}>TF-IDF + Cosine Similarity</span>
+                NLP Model: <span style={{ color: 'var(--primary)' }}>TF-IDF + Cosine Similarity</span>
               </span>
               <span style={{ backgroundColor: 'rgba(255,255,255,0.05)', padding: '0.3rem 0.6rem', borderRadius: '4px' }}>
-                Confidence: <span style={{ color: result.nlp_confidence > 50 ? '#4ade80' : '#f87171' }}>{result.nlp_confidence}%</span>
+                Confidence: <span style={{ color: result.nlp_confidence > 50 ? 'var(--success)' : 'var(--danger)' }}>{result.nlp_confidence}%</span>
               </span>
               {result.low_confidence && (
-                <span style={{ backgroundColor: 'var(--electric-magenta-glow)', color: 'var(--electric-magenta)', border: '1px solid var(--electric-magenta)', padding: '0.3rem 0.6rem', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <span style={{ backgroundColor: 'var(--danger-glow)', color: 'var(--danger)', border: '1px solid var(--danger)', padding: '0.3rem 0.6rem', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                   <AlertTriangle size={14} /> LOW CONFIDENCE — MANUAL REVIEW RECOMMENDED
                 </span>
               )}
@@ -168,19 +168,19 @@ export default function ChargebackDashboard() {
 
             {/* NLP Scores Breakdown */}
             {result.nlp_scores && Object.keys(result.nlp_scores).length > 0 && (
-              <div style={{ backgroundColor: 'var(--panel-charcoal)', border: '1px solid var(--border-faint)', borderRadius: '8px', padding: '1rem' }}>
-                <div style={{ fontSize: '0.85rem', color: 'var(--cyber-cyan)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 'bold', marginBottom: '0.75rem' }}>NLP Category Scores</div>
+              <div style={{ backgroundColor: 'var(--surface-input)', border: '1px solid var(--border-light)', borderRadius: '8px', padding: '1rem' }}>
+                <div style={{ fontSize: '0.85rem', color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 'bold', marginBottom: '0.75rem' }}>NLP Category Scores</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.9rem' }}>
                   {Object.entries(result.nlp_scores)
                     .sort((a, b) => b[1] - a[1]) // Sort descending by score
                     .map(([cat, score]) => (
-                      <div key={cat} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--text-light)' }}>
+                      <div key={cat} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--text-main)' }}>
                         <span style={{ textTransform: 'capitalize' }}>{cat.replace('_', ' ')}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, marginLeft: '2rem' }}>
-                          <div style={{ flex: 1, height: '6px', backgroundColor: 'var(--bg-ink)', borderRadius: '3px', overflow: 'hidden' }}>
-                            <div style={{ width: `${score * 100}%`, height: '100%', backgroundColor: score * 100 === result.nlp_confidence ? 'var(--cyber-cyan)' : 'var(--border-faint)', transition: 'width 0.5s ease-out' }}></div>
+                          <div style={{ flex: 1, height: '6px', backgroundColor: 'var(--bg-main)', borderRadius: '3px', overflow: 'hidden' }}>
+                            <div style={{ width: `${score * 100}%`, height: '100%', backgroundColor: score * 100 === result.nlp_confidence ? 'var(--primary)' : 'var(--border-light)', transition: 'width 0.5s ease-out' }}></div>
                           </div>
-                          <span style={{ width: '45px', textAlign: 'right', fontWeight: score * 100 === result.nlp_confidence ? '600' : 'normal', color: score * 100 === result.nlp_confidence ? 'var(--cyber-cyan)' : 'var(--text-muted)', fontFamily: "'JetBrains Mono', monospace" }}>
+                          <span style={{ width: '45px', textAlign: 'right', fontWeight: score * 100 === result.nlp_confidence ? '600' : 'normal', color: score * 100 === result.nlp_confidence ? 'var(--primary)' : 'var(--text-muted)', fontFamily: "'JetBrains Mono', monospace" }}>
                             {(score * 100).toFixed(1)}%
                           </span>
                         </div>

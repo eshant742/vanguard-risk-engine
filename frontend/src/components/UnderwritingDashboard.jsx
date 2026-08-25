@@ -41,18 +41,18 @@ export default function UnderwritingDashboard() {
 
   const getColorVar = (actionColor) => {
     switch(actionColor) {
-      case 'red': return 'var(--electric-magenta)'
-      case 'yellow': return 'var(--neon-amber)'
-      case 'green': return 'var(--cyber-cyan)'
+      case 'red': return 'var(--danger)'
+      case 'yellow': return 'var(--warning)'
+      case 'green': return 'var(--primary)'
       default: return 'var(--text-muted)'
     }
   }
 
   const getBgVar = (actionColor) => {
     switch(actionColor) {
-      case 'red': return 'var(--electric-magenta-glow)'
-      case 'yellow': return 'var(--neon-amber-glow)'
-      case 'green': return 'var(--cyber-cyan-glow)'
+      case 'red': return 'var(--danger-glow)'
+      case 'yellow': return 'var(--warning-glow)'
+      case 'green': return 'var(--primary-glow)'
       default: return 'transparent'
     }
   }
@@ -81,10 +81,10 @@ export default function UnderwritingDashboard() {
 
         {result && (
           <div className="card animate-fade-in stagger-1" style={{ marginTop: '2rem', borderTop: `4px solid ${getColorVar(result.action_color)}` }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-faint)', paddingBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-light)', paddingBottom: '1.5rem' }}>
               <div>
                 <h3 className="card-title" style={{ marginBottom: '0.2rem' }}>
-                  {result.trust_score >= 70 ? <ShieldCheck color="var(--cyber-cyan)" /> : <ShieldAlert color="var(--electric-magenta)" />}
+                  {result.trust_score >= 70 ? <ShieldCheck color="var(--primary)" /> : <ShieldAlert color="var(--danger)" />}
                   AI Risk Report
                 </h3>
                 <p style={{ color: 'var(--text-muted)', fontFamily: "'JetBrains Mono', monospace", fontSize: '0.85rem' }}>{result.url}</p>
@@ -146,7 +146,7 @@ export default function UnderwritingDashboard() {
                   fontFamily: "'JetBrains Mono', monospace"
                 }}>
                   Sentiment: <span style={{ 
-                    color: result.flags.sentiment_compound > 0.1 ? 'var(--cyber-cyan)' : result.flags.sentiment_compound < -0.1 ? 'var(--electric-magenta)' : 'var(--neon-amber)',
+                    color: result.flags.sentiment_compound > 0.1 ? 'var(--primary)' : result.flags.sentiment_compound < -0.1 ? 'var(--danger)' : 'var(--warning)',
                     fontWeight: '600'
                   }}>
                     {result.flags.sentiment_compound > 0 ? '+' : ''}{result.flags.sentiment_compound}
@@ -155,20 +155,20 @@ export default function UnderwritingDashboard() {
               )}
             </div>
 
-            <p style={{ fontSize: '1.05rem', color: 'var(--text-light)', lineHeight: '1.6', marginBottom: '2rem' }}>
+            <p style={{ fontSize: '1.05rem', color: 'var(--text-main)', lineHeight: '1.6', marginBottom: '2rem' }}>
               {result.summary}
             </p>
 
             {result.flags && (
               <div className="dashboard-grid animate-fade-in stagger-2">
                 {result.flags.prohibited_items && result.flags.prohibited_items.length > 0 && (
-                  <div className="card" style={{ padding: '1.5rem', border: '1px solid var(--electric-magenta)' }}>
-                    <h4 style={{ color: 'var(--electric-magenta)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  <div className="card" style={{ padding: '1.5rem', border: '1px solid var(--danger)' }}>
+                    <h4 style={{ color: 'var(--danger)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
                       <AlertOctagon size={18} /> Prohibited Items Found
                     </h4>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                       {result.flags.prohibited_items.map((item, i) => (
-                        <span key={i} style={{ background: 'var(--electric-magenta-glow)', color: 'var(--electric-magenta)', padding: '0.3rem 0.8rem', borderRadius: '4px', fontSize: '0.85rem', border: '1px solid rgba(255,42,133,0.3)', fontFamily: "'JetBrains Mono', monospace" }}>
+                        <span key={i} style={{ background: 'var(--danger-glow)', color: 'var(--danger)', padding: '0.3rem 0.8rem', borderRadius: '4px', fontSize: '0.85rem', border: '1px solid rgba(255,42,133,0.3)', fontFamily: "'JetBrains Mono', monospace" }}>
                           {item}
                         </span>
                       ))}
@@ -177,13 +177,13 @@ export default function UnderwritingDashboard() {
                 )}
                 
                 {result.flags.high_risk_items && result.flags.high_risk_items.length > 0 && (
-                  <div className="card" style={{ padding: '1.5rem', border: '1px solid var(--neon-amber)' }}>
-                    <h4 style={{ color: 'var(--neon-amber)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  <div className="card" style={{ padding: '1.5rem', border: '1px solid var(--warning)' }}>
+                    <h4 style={{ color: 'var(--warning)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
                       <Info size={18} /> High-Risk Terms Found
                     </h4>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                       {result.flags.high_risk_items.map((item, i) => (
-                        <span key={i} style={{ background: 'var(--neon-amber-glow)', color: 'var(--neon-amber)', padding: '0.3rem 0.8rem', borderRadius: '4px', fontSize: '0.85rem', border: '1px solid rgba(255,176,32,0.3)', fontFamily: "'JetBrains Mono', monospace" }}>
+                        <span key={i} style={{ background: 'var(--warning-glow)', color: 'var(--warning)', padding: '0.3rem 0.8rem', borderRadius: '4px', fontSize: '0.85rem', border: '1px solid rgba(255,176,32,0.3)', fontFamily: "'JetBrains Mono', monospace" }}>
                           {item}
                         </span>
                       ))}
@@ -192,13 +192,13 @@ export default function UnderwritingDashboard() {
                 )}
 
                 {result.flags.business_keywords && result.flags.business_keywords.length > 0 && (
-                  <div className="card" style={{ padding: '1.5rem', border: '1px solid var(--border-color)', gridColumn: '1 / -1' }}>
-                    <h4 style={{ color: 'var(--cyber-cyan)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  <div className="card" style={{ padding: '1.5rem', border: '1px solid var(--border-light)', gridColumn: '1 / -1' }}>
+                    <h4 style={{ color: 'var(--primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
                       <ShieldCheck size={18} /> AI Business Summary (TF-IDF Keywords)
                     </h4>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                       {result.flags.business_keywords.map((kw, i) => (
-                        <span key={i} style={{ background: 'var(--panel-charcoal)', color: 'var(--text-main)', padding: '0.3rem 0.8rem', borderRadius: '4px', fontSize: '0.85rem', border: '1px solid var(--border-faint)', fontFamily: "'JetBrains Mono', monospace" }}>
+                        <span key={i} style={{ background: 'var(--surface-input)', color: 'var(--text-main)', padding: '0.3rem 0.8rem', borderRadius: '4px', fontSize: '0.85rem', border: '1px solid var(--border-light)', fontFamily: "'JetBrains Mono', monospace" }}>
                           {kw}
                         </span>
                       ))}
@@ -212,8 +212,8 @@ export default function UnderwritingDashboard() {
                 {/* Show clean report when nothing flagged */}
                 {(!result.flags.prohibited_items || result.flags.prohibited_items.length === 0) && 
                  (!result.flags.high_risk_items || result.flags.high_risk_items.length === 0) && (
-                  <div className="card" style={{ padding: '1.5rem', border: '1px solid var(--cyber-cyan)' }}>
-                    <h4 style={{ color: 'var(--cyber-cyan)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  <div className="card" style={{ padding: '1.5rem', border: '1px solid var(--primary)' }}>
+                    <h4 style={{ color: 'var(--primary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
                       <ShieldCheck size={18} /> Clean Report
                     </h4>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>

@@ -27,7 +27,7 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ padding: '2rem', textAlign: 'center', color: '#f87171' }}>
+        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--danger)' }}>
           <h2>UI Render Error</h2>
           <p>{this.state.error?.message || "Something went wrong rendering this module."}</p>
           <button className="primary-btn" onClick={() => this.setState({ hasError: false })} style={{ marginTop: '1rem' }}>Try Again</button>
@@ -141,7 +141,7 @@ function App() {
             onClick={() => handleTabChange('fraud')}
             title="Live Fraud Detector"
           >
-            <ShieldAlert size={20} color={activeTab === 'fraud' ? 'var(--cyber-cyan)' : 'var(--text-muted)'} />
+            <ShieldAlert size={20} color={activeTab === 'fraud' ? 'var(--primary)' : 'var(--text-muted)'} />
             {isSidebarOpen && <span>Live Fraud Detector</span>}
           </button>
           
@@ -151,7 +151,7 @@ function App() {
             onClick={() => handleTabChange('metrics')}
             title="ML Metrics Evaluator"
           >
-            <BarChart3 size={20} color={activeTab === 'metrics' ? 'var(--cyber-cyan)' : 'var(--text-muted)'} />
+            <BarChart3 size={20} color={activeTab === 'metrics' ? 'var(--primary)' : 'var(--text-muted)'} />
             {isSidebarOpen && <span>ML Metrics Evaluator</span>}
           </button>
 
@@ -161,7 +161,7 @@ function App() {
             onClick={() => handleTabChange('chargeback')}
             title="Chargeback Responder"
           >
-            <Receipt size={20} color={activeTab === 'chargeback' ? 'var(--cyber-cyan)' : 'var(--text-muted)'} />
+            <Receipt size={20} color={activeTab === 'chargeback' ? 'var(--primary)' : 'var(--text-muted)'} />
             {isSidebarOpen && <span>Chargeback Responder</span>}
           </button>
 
@@ -171,7 +171,7 @@ function App() {
             onClick={() => handleTabChange('abuse')}
             title="Abuse-Ring Sentinel"
           >
-            <Users size={20} color={activeTab === 'abuse' ? 'var(--cyber-cyan)' : 'var(--text-muted)'} />
+            <Users size={20} color={activeTab === 'abuse' ? 'var(--primary)' : 'var(--text-muted)'} />
             {isSidebarOpen && <span>Abuse-Ring Sentinel</span>}
           </button>
 
@@ -181,7 +181,7 @@ function App() {
             onClick={() => handleTabChange('returnrisk')}
             title="Return-Risk Scorer"
           >
-            <Undo2 size={20} color={activeTab === 'returnrisk' ? 'var(--cyber-cyan)' : 'var(--text-muted)'} />
+            <Undo2 size={20} color={activeTab === 'returnrisk' ? 'var(--primary)' : 'var(--text-muted)'} />
             {isSidebarOpen && <span>Return-Risk Scorer</span>}
           </button>
 
@@ -191,7 +191,7 @@ function App() {
             onClick={() => handleTabChange('underwrite')}
             title="AI Underwriting"
           >
-            <FileText size={20} color={activeTab === 'underwrite' ? 'var(--cyber-cyan)' : 'var(--text-muted)'} />
+            <FileText size={20} color={activeTab === 'underwrite' ? 'var(--primary)' : 'var(--text-muted)'} />
             {isSidebarOpen && <span>AI Underwriting</span>}
           </button>
           
@@ -201,7 +201,7 @@ function App() {
             onClick={() => handleTabChange('fx')}
             title="FX Risk Engine"
           >
-            <Globe size={20} color={activeTab === 'fx' ? 'var(--cyber-cyan)' : 'var(--text-muted)'} />
+            <Globe size={20} color={activeTab === 'fx' ? 'var(--primary)' : 'var(--text-muted)'} />
             {isSidebarOpen && <span>FX Risk Engine</span>}
           </button>
         </nav>
@@ -217,15 +217,15 @@ function App() {
       {/* Main Content Canvas */}
       <main className="main-content">
         <header className="topbar">
-          <h2>{getTitle()}</h2>
+          <div style={{display: "flex", flexDirection: "column"}}><span className="eyebrow">ACTIVE MODULE</span><h2>{getTitle()}</h2></div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-main)', fontWeight: '500' }}>Admin Console</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--cyber-cyan)', display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'flex-end' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'flex-end' }}>
                 <div className="live-dot"></div> System Active
               </div>
             </div>
-            <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: 'var(--panel-charcoal)', border: '1px solid var(--border-faint)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '600', color: 'var(--text-muted)' }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: 'var(--surface-input)', border: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '600', color: 'var(--text-muted)' }}>
               AD
             </div>
           </div>
@@ -234,7 +234,7 @@ function App() {
         {/* Live Threat Ticker — connected to backend */}
         <div className="threat-ticker-wrapper">
           <div className="ticker-label">
-            <Activity size={16} color="var(--electric-magenta)" />
+            <Activity size={16} color="var(--danger)" />
             LIVE STREAM
           </div>
           <div className="ticker-content">

@@ -39,7 +39,7 @@ export default function FXRiskDashboard() {
 
   if (error && !data) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center', color: '#f87171' }}>
+      <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--danger)' }}>
         {error}. Make sure the Python backend is running!
       </div>
     )
@@ -49,18 +49,18 @@ export default function FXRiskDashboard() {
 
   const getStatusColorVar = (color) => {
     switch(color) {
-      case 'green': return 'var(--cyber-cyan)'
-      case 'yellow': return 'var(--neon-amber)'
-      case 'red': return 'var(--electric-magenta)'
+      case 'green': return 'var(--primary)'
+      case 'yellow': return 'var(--warning)'
+      case 'red': return 'var(--danger)'
       default: return 'var(--text-muted)'
     }
   }
 
   const getStatusBgVar = (color) => {
     switch(color) {
-      case 'green': return 'var(--cyber-cyan-glow)'
-      case 'yellow': return 'var(--neon-amber-glow)'
-      case 'red': return 'var(--electric-magenta-glow)'
+      case 'green': return 'var(--primary-glow)'
+      case 'yellow': return 'var(--warning-glow)'
+      case 'red': return 'var(--danger-glow)'
       default: return 'transparent'
     }
   }
@@ -91,11 +91,11 @@ export default function FXRiskDashboard() {
       </div>
 
       {/* FX Rate Ticker */}
-      <div className="animate-fade-in stagger-1" style={{ background: 'var(--panel-charcoal)', padding: '1rem 1.5rem', borderRadius: '12px', border: '1px solid var(--border-faint)', display: 'flex', gap: '2.5rem', overflowX: 'auto', marginBottom: '2rem' }}>
+      <div className="animate-fade-in stagger-1" style={{ background: 'var(--surface-input)', padding: '1rem 1.5rem', borderRadius: '12px', border: '1px solid var(--border-light)', display: 'flex', gap: '2.5rem', overflowX: 'auto', marginBottom: '2rem' }}>
         {Object.entries(data.rates).map(([currency, rate]) => (
           <div key={currency} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: "'JetBrains Mono', monospace" }}>{data.base_currency} / {currency}</span>
-            <span style={{ fontSize: '1.3rem', fontWeight: 'bold', color: 'var(--cyber-cyan)', fontFamily: "'JetBrains Mono', monospace" }}>{(Number(rate) || 0).toFixed(2)}</span>
+            <span style={{ fontSize: '1.3rem', fontWeight: 'bold', color: 'var(--primary)', fontFamily: "'JetBrains Mono', monospace" }}>{(Number(rate) || 0).toFixed(2)}</span>
           </div>
         ))}
       </div>
@@ -104,7 +104,7 @@ export default function FXRiskDashboard() {
         {/* Settlement Risk Score Card */}
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', paddingBottom: '1rem' }}>
-            <h3 style={{ margin: 0, color: '#fff', textTransform: 'uppercase', letterSpacing: '1.5px', fontSize: '0.95rem' }}>Settlement Risk Score</h3>
+            <h3 style={{ margin: 0, color: 'var(--text-heading)', textTransform: 'uppercase', letterSpacing: '1.5px', fontSize: '0.95rem' }}>Settlement Risk Score</h3>
             <div style={{ 
               fontSize: '3.5rem', 
               fontWeight: '800', 
@@ -140,7 +140,7 @@ export default function FXRiskDashboard() {
 
           {/* Average sentiment */}
           {data.average_sentiment !== undefined && (
-            <div style={{ marginTop: '1.5rem', padding: '1rem', backgroundColor: 'var(--panel-charcoal)', borderRadius: '8px', border: '1px solid var(--border-faint)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div style={{ marginTop: '1.5rem', padding: '1rem', backgroundColor: 'var(--surface-input)', borderRadius: '8px', border: '1px solid var(--border-light)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Avg News Sentiment</div>
                 <div style={{ fontSize: '1.5rem', fontWeight: '700', color: getStatusColorVar(data.average_sentiment > 0.1 ? 'green' : data.average_sentiment < -0.1 ? 'red' : 'yellow'), fontFamily: "'JetBrains Mono', monospace" }}>
@@ -151,7 +151,7 @@ export default function FXRiskDashboard() {
               {data.volatility_metrics && (
                 <div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>7-Day Volatility (INR)</div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--cyber-cyan)', fontFamily: "'JetBrains Mono', monospace" }}>
+                  <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--primary)', fontFamily: "'JetBrains Mono', monospace" }}>
                     {data.volatility_metrics.inr_volatility.toFixed(4)}
                   </div>
                 </div>
@@ -169,7 +169,7 @@ export default function FXRiskDashboard() {
                 animationDelay: `${index * 0.1}s`, 
                 padding: '1rem', 
                 borderLeft: `3px solid ${getStatusColorVar(item.color)}`,
-                background: 'var(--panel-charcoal)', 
+                background: 'var(--surface-input)', 
                 borderRadius: '0 8px 8px 0' 
               }}>
                 <div>
